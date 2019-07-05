@@ -11,6 +11,7 @@ func NewContainer(name string) *Container {
 	return &Container{Name: name}
 }
 
+// String satisfies the Stringer interface.
 func (c Container) String() string {
 	return c.Name
 }

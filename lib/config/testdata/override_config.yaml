@@ -1,0 +1,8 @@
+mysql:
+  username: admin
+  secure: false
+
+override:
+  mysql:
+    password: admin
+    secure: true

@@ -2,4 +2,8 @@
 
 set -e
 
-./scripts/pre-commit.sh
+echo "Running pre-commit hook..."
+
+make precommit
+
+echo "Pre-commit hook complete!"
