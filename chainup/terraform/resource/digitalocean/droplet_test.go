@@ -5,6 +5,7 @@ import (
 
 	"chainup.dev/chainup/terraform/resource"
 	"chainup.dev/chainup/terraform/resource/digitalocean"
+	"chainup.dev/lib/test"
 )
 
 func TestDropletRendering(t *testing.T) {
@@ -26,9 +27,7 @@ func TestDropletRendering(t *testing.T) {
 `
 
 	got := resource.Render(droplet)
-	if got != want {
-		t.Errorf("droplet rendering missmatch:\ngot:\n'%s'\nwant:\n'%s'", got, want)
-	}
+	test.AssertStringsEqual(t, "Droplet.Render()", got, want)
 }
 
 func TestDropletWithSSHKey(t *testing.T) {
@@ -52,9 +51,7 @@ func TestDropletWithSSHKey(t *testing.T) {
 `
 
 	got := resource.Render(droplet)
-	if got != want {
-		t.Errorf("droplet rendering missmatch:\ngot:\n'%s'\nwant:\n'%s'", got, want)
-	}
+	test.AssertStringsEqual(t, "Droplet.Render()", got, want)
 }
 
 func TestDropletWithMultipleSSHKeys(t *testing.T) {
@@ -81,7 +78,5 @@ func TestDropletWithMultipleSSHKeys(t *testing.T) {
 `
 
 	got := resource.Render(droplet)
-	if got != want {
-		t.Errorf("droplet rendering missmatch:\ngot:\n'%s'\nwant:\n'%s'", got, want)
-	}
+	test.AssertStringsEqual(t, "Droplet.Render()", got, want)
 }

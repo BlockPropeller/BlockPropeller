@@ -5,6 +5,7 @@ import (
 
 	"chainup.dev/chainup/terraform/resource"
 	"chainup.dev/chainup/terraform/resource/digitalocean"
+	"chainup.dev/lib/test"
 )
 
 func TestSSHKeyRendering(t *testing.T) {
@@ -17,7 +18,6 @@ func TestSSHKeyRendering(t *testing.T) {
 `
 
 	got := resource.Render(sshKey)
-	if got != want {
-		t.Errorf("SSH key rendering missmatch:\ngot:\n'%s'\nwant:\n'%s'", got, want)
-	}
+
+	test.AssertStringsEqual(t, "SSHKey.Render()", got, want)
 }

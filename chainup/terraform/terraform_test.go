@@ -15,3 +15,15 @@ func TestTerraformIsExecutable(t *testing.T) {
 		return
 	}
 }
+
+func TestPlanSimpleResource(t *testing.T) {
+	//@TODO: Test terraform planning.
+}
+
+func TestApplySimpleResource(t *testing.T) {
+	//@TODO: Test terraform executing a plan.
+}
+
+func TestCleanupAfterSelf(t *testing.T) {
+	//@TODO: Test terraform cleaning up after itself.
+}

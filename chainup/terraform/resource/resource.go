@@ -6,6 +6,16 @@ import (
 	"strings"
 )
 
+// Provider represents a destination where Terraform
+// resources should be deployed to.
+//
+// Each family of resources that is about to be deployed
+// should have a provider defined for them.
+type Provider interface {
+	// Render a provider into Terraform syntax.
+	Render() string
+}
+
 // Resource is an abstraction over different kinds of resources
 // Terraform is able to provision.
 //

@@ -1,6 +1,10 @@
 package resource
 
-import "testing"
+import (
+	"testing"
+
+	"chainup.dev/lib/test"
+)
 
 func TestPropertyRendering(t *testing.T) {
 	tests := []struct {
@@ -41,12 +45,11 @@ func TestPropertyRendering(t *testing.T) {
 			),
 		), "[ 1, \"2\", res.name.id, [ 0, 1 ] ]"},
 	}
-	for _, test := range tests {
-		t.Run(test.want, func(t *testing.T) {
-			got := test.prop.Render()
-			if got != test.want {
-				t.Errorf("render prop: got '%s', want '%s'", got, test.want)
-			}
+	for _, testCase := range tests {
+		t.Run(testCase.want, func(t *testing.T) {
+			got := testCase.prop.Render()
+
+			test.AssertStringsEqual(t, "render prop", got, testCase.want)
 		})
 	}
 }

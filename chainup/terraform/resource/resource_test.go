@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"chainup.dev/chainup/terraform/resource"
+	"chainup.dev/lib/test"
 )
 
 type testResource struct {
@@ -28,10 +29,7 @@ func TestResourceToID(t *testing.T) {
 	got := resource.ToID(res).Render()
 	want := "test_resource.test-0.id"
 
-	if got != want {
-		t.Errorf("resource.ToID: got %s, want %s", got, want)
-		return
-	}
+	test.AssertStringsEqual(t, "ToID()", got, want)
 }
 
 func TestResourceRendering(t *testing.T) {
@@ -42,10 +40,8 @@ func TestResourceRendering(t *testing.T) {
   "name" = "test-0"
 }
 `
-	if got != want {
-		t.Errorf("resource.Render: got '%s', want '%s'", got, want)
-		return
-	}
+
+	test.AssertStringsEqual(t, "Render()", got, want)
 }
 
 func TestPropertiesRendering(t *testing.T) {
@@ -58,10 +54,7 @@ func TestPropertiesRendering(t *testing.T) {
 "bar" = "baz"
 `
 
-	if got != want {
-		t.Errorf("props.Render: got '%s', want '%s'", got, want)
-		return
-	}
+	test.AssertStringsEqual(t, "props.Render()", got, want)
 }
 
 func TestPropertiesRenderingWithIndentation(t *testing.T) {
@@ -75,8 +68,5 @@ func TestPropertiesRenderingWithIndentation(t *testing.T) {
     "bar" = "baz"
 `
 
-	if got != want {
-		t.Errorf("props.Render with indentation: got '%s', want '%s'", got, want)
-		return
-	}
+	test.AssertStringsEqual(t, "props.Render with indentation", got, want)
 }
