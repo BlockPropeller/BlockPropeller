@@ -7,7 +7,7 @@ import (
 var logger Logger
 
 func init() {
-	logger = NewStackDriverLogger(&Config{})
+	logger = NewConsoleLogger(&Config{})
 }
 
 // SetGlobal overrides the default globally accessible logger.

@@ -16,6 +16,17 @@ func AssertStringsEqual(t *testing.T, name string, got string, want string) {
 	t.FailNow()
 }
 
+// AssertBoolEqual assets that the returned bool matches the expected one,
+// reports error in case of mismatch and immediately fails the running test.
+func AssertBoolEqual(t *testing.T, name string, got bool, want bool) {
+	if got == want {
+		return
+	}
+
+	t.Errorf("%s: got '%t', want '%t'", name, got, want)
+	t.FailNow()
+}
+
 // CheckErr fails the currently running test if the provided error is not nil.
 func CheckErr(t *testing.T, name string, err error) {
 	if err == nil {
