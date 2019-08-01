@@ -1,4 +1,4 @@
-package chainup
+package infrastructure
 
 var (
 	// ProviderDigitalOcean is the ProviderType for DigitalOcean cloud provider.

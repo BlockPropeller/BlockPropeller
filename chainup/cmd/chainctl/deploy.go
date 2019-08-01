@@ -31,7 +31,7 @@ func DeployCmd(app *chainup.App) cli.Command {
 			cli.StringFlag{
 				Name:  "provider",
 				Usage: "Cloud provider to use for provisioning infrastructure.",
-				Value: chainup.ProviderDigitalOcean.String(),
+				Value: infrastructure.ProviderDigitalOcean.String(),
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -51,10 +51,10 @@ func DeployCmd(app *chainup.App) cli.Command {
 				return
 			}
 
-			providerType := chainup.NewProviderType(c.String("provider"))
+			providerType := infrastructure.NewProviderType(c.String("provider"))
 			if !providerType.IsValid() {
 				log.Error("Invalid provider type flag.", log.Fields{
-					"valid_types": chainup.ValidProviders,
+					"valid_types": infrastructure.ValidProviders,
 				})
 				return
 			}

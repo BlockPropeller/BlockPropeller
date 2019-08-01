@@ -2,6 +2,8 @@ package test
 
 import (
 	"testing"
+
+	"chainup.dev/lib/log"
 )
 
 // Integration marks the test as an integration test.
@@ -11,4 +13,6 @@ func Integration(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
+
+	log.SetGlobal(log.NewTestingLogger(t))
 }

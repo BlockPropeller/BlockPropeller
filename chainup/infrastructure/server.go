@@ -32,6 +32,7 @@ func (id ServerID) String() string {
 // ServerBuilder helps construct provisioning servers by providing
 // a fluent interface for configuring server details.
 type ServerBuilder struct {
+	provider ProviderType
 }
 
 // NewServerBuilder starts the process of building a server.
@@ -39,9 +40,16 @@ func NewServerBuilder() *ServerBuilder {
 	return &ServerBuilder{}
 }
 
+// Provider configures the provider used for provisioning the server.
+func (b *ServerBuilder) Provider(provider ProviderType) *ServerBuilder {
+	b.provider = provider
+
+	return b
+}
+
 // Build assembles all the server configuration into a single server object.
 func (b *ServerBuilder) Build() *Server {
-	return NewServer()
+	return NewServer(b.provider)
 }
 
 // Server holds all the configuration values for a single provisioning server.
@@ -50,19 +58,23 @@ type Server struct {
 
 	statemachine.Resource
 
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	FinishedAt time.Time `json:"finished_at,omitempty"`
+	Provider ProviderType `json:"provider"`
+
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	CompletedAt time.Time `json:"completed_at,omitempty"`
 }
 
 // NewServer allows you to construct a provision server in a single line.
 //
 // If you need a fluent interface for constructing the Server, you can use the ServerBuilder.
-func NewServer() *Server {
+func NewServer(provider ProviderType) *Server {
 	return &Server{
 		ID: NewServerID(),
 
 		Resource: statemachine.NewResource(StateCreated),
+
+		Provider: provider,
 
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

@@ -1,9 +1,9 @@
-package chainup_test
+package infrastructure_test
 
 import (
 	"testing"
 
-	"chainup.dev/chainup"
+	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/lib/test"
 )
 
@@ -18,7 +18,7 @@ func TestProviderTypeIsValid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			net := chainup.NewProviderType(tt.name)
+			net := infrastructure.NewProviderType(tt.name)
 
 			got := net.IsValid()
 			test.AssertBoolEqual(t, "ProviderType.IsValid()", got, tt.valid)

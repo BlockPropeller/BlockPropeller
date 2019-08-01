@@ -1,6 +1,6 @@
-.PHONY: init tools mod generate fmt lint test watch precommit integration
+.PHONY: setup tools mod generate fmt lint test watch precommit integration
 
-init: tools
+setup: tools
 	git config core.hooksPath .githooks
 
 tools:
@@ -29,4 +29,4 @@ watch:
 precommit: mod generate fmt lint test
 
 integration:
-	 go test -v ./integration
+	 go test ./integration

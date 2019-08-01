@@ -4,6 +4,7 @@ package chainup
 
 import (
 	"chainup.dev/chainup/infrastructure"
+	"chainup.dev/chainup/provision"
 	"github.com/google/wire"
 )
 
@@ -15,7 +16,7 @@ func SetupInMemoryApp() *App {
 		infrastructure.NewInMemoryServerRepository,
 		wire.Bind(new(infrastructure.ServerRepository), new(infrastructure.InMemoryServerRepository)),
 
-		NewProvisioner,
+		provision.NewProvisioner,
 		NewApp,
 	))
 }
