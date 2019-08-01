@@ -6,7 +6,6 @@ import (
 
 	"chainup.dev/chainup/statemachine"
 	"chainup.dev/lib/test"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -70,7 +69,7 @@ func TestSimpleStateMachine(t *testing.T) {
 
 	job := NewJob()
 
-	err := runToCompletion(sm, job)
+	err := sm.StepToCompletion(context.Background(), job)
 
 	test.CheckErr(t, "run state machine", err)
 	test.AssertIntsEqual(t, "job updated", job.Acc, 10)
@@ -85,7 +84,7 @@ func TestMultipleSteps(t *testing.T) {
 
 	job := NewJob()
 
-	err := runToCompletion(sm, job)
+	err := sm.StepToCompletion(context.Background(), job)
 
 	test.CheckErr(t, "run state machine", err)
 	test.AssertIntsEqual(t, "job updated", job.Acc, 55)
@@ -105,19 +104,4 @@ func TestFailingInvocation(t *testing.T) {
 
 func TestContextualCancellation(t *testing.T) {
 	//@TODO: TestContextualCancellation
-}
-
-func runToCompletion(sm *statemachine.StateMachine, res statemachine.StatefulResource) error {
-	return runToCompletionCtx(context.Background(), sm, res)
-}
-
-func runToCompletionCtx(ctx context.Context, sm *statemachine.StateMachine, res statemachine.StatefulResource) error {
-	for !res.GetState().IsFinished {
-		err := sm.Step(ctx, res)
-		if err != nil {
-			return errors.Wrap(err, "execute state machine to completion")
-		}
-	}
-
-	return nil
 }

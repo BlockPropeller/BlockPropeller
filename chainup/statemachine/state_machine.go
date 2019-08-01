@@ -221,3 +221,15 @@ func (sm *StateMachine) Step(ctx context.Context, res StatefulResource) error {
 
 	return nil
 }
+
+// StepToCompletion advances the StateMachine until a completions step is reached.
+func (sm *StateMachine) StepToCompletion(ctx context.Context, res StatefulResource) error {
+	for !res.GetState().IsFinished {
+		err := sm.Step(ctx, res)
+		if err != nil {
+			return errors.Wrap(err, "execute state machine to completion")
+		}
+	}
+
+	return nil
+}

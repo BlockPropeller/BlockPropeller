@@ -3,16 +3,19 @@
 package chainup
 
 import (
-	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/infrastructure"
 	"github.com/google/wire"
 )
 
-// SetupInMemoryProvisioner constructs an in-memory variant of the Provisioner.
-func SetupInMemoryProvisioner() *provision.Provisioner {
+// SetupInMemoryApp constructs an in-memory variant of the StateMachine handling Server state transitions.
+func SetupInMemoryApp() *App {
 	panic(wire.Build(
-		provision.Set,
+		infrastructure.Set,
 
-		provision.NewInMemoryJobRepository,
-		wire.Bind(new(provision.JobRepository), new(provision.InMemoryJobRepository)),
+		infrastructure.NewInMemoryServerRepository,
+		wire.Bind(new(infrastructure.ServerRepository), new(infrastructure.InMemoryServerRepository)),
+
+		NewProvisioner,
+		NewApp,
 	))
 }

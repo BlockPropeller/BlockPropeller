@@ -1,4 +1,4 @@
-package provision
+package infrastructure
 
 import (
 	"chainup.dev/chainup/statemachine"

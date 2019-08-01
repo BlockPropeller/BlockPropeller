@@ -6,14 +6,15 @@
 package chainup
 
 import (
-	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/infrastructure"
 )
 
 // Injectors from inject_memory.go:
 
-func SetupInMemoryProvisioner() *provision.Provisioner {
-	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	stateMachine := provision.ConfigureStateMachine()
-	provisioner := provision.NewProvisioner(inMemoryJobRepository, stateMachine)
-	return provisioner
+func SetupInMemoryApp() *App {
+	stateMachine := infrastructure.ConfigureStateMachine()
+	provisioner := NewProvisioner(stateMachine)
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	app := NewApp(provisioner, inMemoryServerRepository)
+	return app
 }

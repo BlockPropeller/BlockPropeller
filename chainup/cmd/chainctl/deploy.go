@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
+
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/binance"
-	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/lib/log"
 	"github.com/urfave/cli"
 )
@@ -11,7 +13,7 @@ import (
 // DeployCmd is a command for creating new infrastructure and deploying a Binance Chain node on top of it.
 //
 // This command serves as an MVP for the infrastructure and provisioning of ChainUP.
-func DeployCmd() cli.Command {
+func DeployCmd(app *chainup.App) cli.Command {
 	return cli.Command{
 		Name:  "deploy",
 		Usage: "Deploy a new Binance Chain node.",
@@ -63,22 +65,17 @@ func DeployCmd() cli.Command {
 				"provider_type": providerType.String(),
 			})
 
-			job := provision.NewJobBuilder().Build()
+			server := infrastructure.NewServerBuilder().Build()
 
-			provisioner := chainup.SetupInMemoryProvisioner()
-
-			//@TODO: Create resource creation request for machines that need to be created and services that need to be running on top.
-			//@TODO: Kick-off the provisioning process.
-			//@TODO: Wait for the process to complete and return the results to the user.
-			err := provisioner.WaitFor(job)
+			err := app.Provisioner.Provision(context.Background(), server)
 			if err != nil {
-				log.ErrorErr(err, "Failed running provisioner job")
+				log.ErrorErr(err, "Failed running server state machine")
 				return
 			}
 
-			log.Info("Finished provisioning job", log.Fields{
-				"id":    job.ID,
-				"state": job.State,
+			log.Info("Finished provisioning server", log.Fields{
+				"id":    server.ID,
+				"state": server.State,
 			})
 		},
 	}
