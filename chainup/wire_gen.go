@@ -15,9 +15,10 @@ import (
 func SetupInMemoryApp() *App {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
-	stateMachine := infrastructure.ConfigureStateMachine()
+	jobStateMachine := provision.ConfigureJobStateMachine()
+	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
-	provisioner := provision.NewProvisioner(stateMachine, inMemoryServerRepository)
 	app := NewApp(config, provisioner, inMemoryServerRepository)
 	return app
 }
@@ -27,9 +28,10 @@ func SetupInMemoryApp() *App {
 func SetupTestApp() *App {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
-	stateMachine := infrastructure.ConfigureStateMachine()
+	jobStateMachine := provision.ConfigureJobStateMachine()
+	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
-	provisioner := provision.NewProvisioner(stateMachine, inMemoryServerRepository)
 	app := NewApp(config, provisioner, inMemoryServerRepository)
 	return app
 }

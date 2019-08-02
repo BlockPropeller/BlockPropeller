@@ -20,10 +20,17 @@ var (
 	ValidStates = []statemachine.State{StateCreated, StateCompleted, StateFailed}
 )
 
-// ConfigureStateMachine returns a preconfigured StateMachine
+// JobStateMachine defines the state machine for running provisioning jobs.
+type JobStateMachine struct {
+	*statemachine.StateMachine
+}
+
+// ConfigureJobStateMachine returns a preconfigured StateMachine
 // for running provisioning jobs.
-func ConfigureStateMachine() *statemachine.StateMachine {
-	return statemachine.Builder(ValidStates).
-		Step(StateCreated, step.Simple(StateFailed)).
-		Build()
+func ConfigureJobStateMachine() *JobStateMachine {
+	return &JobStateMachine{
+		StateMachine: statemachine.Builder(ValidStates).
+			Step(StateCreated, step.Simple(StateFailed)).
+			Build(),
+	}
 }

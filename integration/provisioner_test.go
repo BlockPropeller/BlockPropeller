@@ -23,7 +23,7 @@ func TestProvisioningJob(t *testing.T) {
 		Build()
 	test.CheckErr(t, "build job spec", err)
 
-	err = app.Provisioner.Provision(context.Background(), job.Server)
+	err = app.Provisioner.Provision(context.Background(), job)
 	test.CheckErr(t, "run deploy command", err)
 
 	srv, err := app.ServerRepository.Find(job.Server.ID)

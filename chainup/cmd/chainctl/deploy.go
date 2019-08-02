@@ -6,6 +6,7 @@ import (
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/binance"
 	"chainup.dev/chainup/infrastructure"
+	"chainup.dev/chainup/provision"
 	"chainup.dev/lib/log"
 	"github.com/urfave/cli"
 )
@@ -33,6 +34,10 @@ func DeployCmd(app *chainup.App) cli.Command {
 				Usage: "Cloud provider to use for provisioning infrastructure.",
 				Value: infrastructure.ProviderDigitalOcean.String(),
 			},
+			cli.StringFlag{
+				Name:  "key",
+				Usage: "Cloud provider access key to use for provisioning infrastructure.",
+			},
 		},
 		Action: func(c *cli.Context) {
 			network := binance.NewNetwork(c.String("network"))
@@ -59,11 +64,21 @@ func DeployCmd(app *chainup.App) cli.Command {
 				return
 			}
 
+			providerKey := c.String("key")
+			if providerKey == "" {
+				log.Error("Invalid provider key flag. The key must not be empty.")
+				return
+			}
+
 			log.Info("Starting provisioning process...", log.Fields{
 				"network":       network.String(),
 				"node_type":     nodeType.String(),
 				"provider_type": providerType.String(),
 			})
+
+			job, err := provision.NewJobBuilder().
+				Provider(infrastructure.NewProviderSettings(providerType, providerKey)).
+				Build()
 
 			server, err := infrastructure.NewServerBuilder().
 				Provider(providerType).
@@ -72,7 +87,7 @@ func DeployCmd(app *chainup.App) cli.Command {
 				log.ErrorErr(err, "Failed building server request")
 			}
 
-			err = app.Provisioner.Provision(context.Background(), server)
+			err = app.Provisioner.Provision(context.Background(), job)
 			if err != nil {
 				log.ErrorErr(err, "Failed running server state machine")
 				return

@@ -23,10 +23,17 @@ var (
 	ValidStates = []statemachine.State{StateRequested, StateProvisioning, StateReady, StateFailed}
 )
 
-// ConfigureStateMachine returns a preconfigured StateMachine
+// ServerStateMachine defines the state machine for provisioning servers.
+type ServerStateMachine struct {
+	*statemachine.StateMachine
+}
+
+// ConfigureServerStateMachine returns a preconfigured StateMachine
 // for running server provisioning.
-func ConfigureStateMachine() *statemachine.StateMachine {
-	return statemachine.Builder(ValidStates).
-		Step(StateRequested, step.Simple(StateFailed)).
-		Build()
+func ConfigureServerStateMachine() *ServerStateMachine {
+	return &ServerStateMachine{
+		StateMachine: statemachine.Builder(ValidStates).
+			Step(StateRequested, step.Simple(StateFailed)).
+			Build(),
+	}
 }

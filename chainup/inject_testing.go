@@ -4,6 +4,7 @@ package chainup
 
 import (
 	"chainup.dev/chainup/infrastructure"
+	"chainup.dev/chainup/provision"
 	"github.com/google/wire"
 )
 
@@ -15,8 +16,8 @@ func SetupTestApp() *App {
 		infrastructure.NewInMemoryServerRepository,
 		wire.Bind(new(infrastructure.ServerRepository), new(infrastructure.InMemoryServerRepository)),
 
-		//provision.NewInMemoryJobRepository,
-		//wire.Bind(new(provision.JobRepository), new(provision.InMemoryJobRepository)),
+		provision.NewInMemoryJobRepository,
+		wire.Bind(new(provision.JobRepository), new(provision.InMemoryJobRepository)),
 
 		AppSet,
 	))
