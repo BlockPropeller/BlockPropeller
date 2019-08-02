@@ -32,12 +32,20 @@ func (id ServerID) String() string {
 // ServerBuilder helps construct provisioning servers by providing
 // a fluent interface for configuring server details.
 type ServerBuilder struct {
+	name     string
 	provider ProviderType
 }
 
 // NewServerBuilder starts the process of building a server.
 func NewServerBuilder() *ServerBuilder {
 	return &ServerBuilder{}
+}
+
+// Name configures the name used for identify the new server.
+func (b *ServerBuilder) Name(name string) *ServerBuilder {
+	b.name = name
+
+	return b
 }
 
 // Provider configures the provider used for provisioning the server.
@@ -48,8 +56,15 @@ func (b *ServerBuilder) Provider(provider ProviderType) *ServerBuilder {
 }
 
 // Build assembles all the server configuration into a single server object.
-func (b *ServerBuilder) Build() *Server {
-	return NewServer(b.provider)
+func (b *ServerBuilder) Build() (*Server, error) {
+	if b.name == "" {
+		return nil, errors.New("missing server name")
+	}
+	if b.provider == "" {
+		return nil, errors.New("missing cloud provider")
+	}
+
+	return NewServer(b.name, b.provider), nil
 }
 
 // Server holds all the configuration values for a single provisioning server.
@@ -57,6 +72,8 @@ type Server struct {
 	ID ServerID `json:"id"`
 
 	statemachine.Resource
+
+	Name string `json:"name"`
 
 	Provider ProviderType `json:"provider"`
 
@@ -68,11 +85,13 @@ type Server struct {
 // NewServer allows you to construct a provision server in a single line.
 //
 // If you need a fluent interface for constructing the Server, you can use the ServerBuilder.
-func NewServer(provider ProviderType) *Server {
+func NewServer(name string, provider ProviderType) *Server {
 	return &Server{
 		ID: NewServerID(),
 
-		Resource: statemachine.NewResource(StateCreated),
+		Resource: statemachine.NewResource(StateRequested),
+
+		Name: name,
 
 		Provider: provider,
 

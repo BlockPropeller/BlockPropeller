@@ -13,9 +13,23 @@ import (
 // Injectors from inject_memory.go:
 
 func SetupInMemoryApp() *App {
+	provider := ProvideFileConfigProvider()
+	config := ProvideConfig(provider)
 	stateMachine := infrastructure.ConfigureStateMachine()
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	provisioner := provision.NewProvisioner(stateMachine, inMemoryServerRepository)
-	app := NewApp(provisioner, inMemoryServerRepository)
+	app := NewApp(config, provisioner, inMemoryServerRepository)
+	return app
+}
+
+// Injectors from inject_testing.go:
+
+func SetupTestApp() *App {
+	provider := ProvideTestConfigProvider()
+	config := ProvideConfig(provider)
+	stateMachine := infrastructure.ConfigureStateMachine()
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	provisioner := provision.NewProvisioner(stateMachine, inMemoryServerRepository)
+	app := NewApp(config, provisioner, inMemoryServerRepository)
 	return app
 }

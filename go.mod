@@ -3,6 +3,7 @@ module chainup.dev
 go 1.12
 
 require (
+	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/google/wire v0.3.0
 	github.com/joonix/log v0.0.0-20190524090622-13fe31bbdd7a
 	github.com/kr/pretty v0.1.0 // indirect

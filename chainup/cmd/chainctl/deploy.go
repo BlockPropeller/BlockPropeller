@@ -65,9 +65,14 @@ func DeployCmd(app *chainup.App) cli.Command {
 				"provider_type": providerType.String(),
 			})
 
-			server := infrastructure.NewServerBuilder().Build()
+			server, err := infrastructure.NewServerBuilder().
+				Provider(providerType).
+				Build()
+			if err != nil {
+				log.ErrorErr(err, "Failed building server request")
+			}
 
-			err := app.Provisioner.Provision(context.Background(), server)
+			err = app.Provisioner.Provision(context.Background(), server)
 			if err != nil {
 				log.ErrorErr(err, "Failed running server state machine")
 				return

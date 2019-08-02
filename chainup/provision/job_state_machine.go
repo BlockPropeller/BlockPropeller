@@ -1,4 +1,4 @@
-package infrastructure
+package provision
 
 import (
 	"chainup.dev/chainup/statemachine"
@@ -9,7 +9,7 @@ var (
 	// StateCreated is the starting point for a provisioning job.
 	StateCreated = statemachine.NewState("created")
 
-	// StateCompleted is the terminating state representing a successful server provisioning.
+	// StateCompleted is the terminating state representing a successful provisioning job.
 	StateCompleted = statemachine.NewState("completed").Successful()
 
 	// StateFailed is the terminating state representing provisioning server failure.

@@ -7,10 +7,10 @@ import (
 	"github.com/google/wire"
 )
 
-// SetupInMemoryApp constructs an in-memory variant of the StateMachine handling Server state transitions.
-func SetupInMemoryApp() *App {
+// SetupTestApp constructs an in-memory variant of the StateMachine handling Server state transitions.
+func SetupTestApp() *App {
 	panic(wire.Build(
-		ProvideFileConfigProvider,
+		ProvideTestConfigProvider,
 
 		infrastructure.NewInMemoryServerRepository,
 		wire.Bind(new(infrastructure.ServerRepository), new(infrastructure.InMemoryServerRepository)),
