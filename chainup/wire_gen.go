@@ -8,14 +8,18 @@ package chainup
 import (
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/terraform"
 )
 
-// Injectors from inject_memory.go:
+// Injectors from inject_local.go:
 
 func SetupInMemoryApp() *App {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
-	jobStateMachine := provision.ConfigureJobStateMachine()
+	terraformConfig := config.Terraform
+	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
+	terraformStep := provision.NewTerraformStep(terraformTerraform)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep)
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
 	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
@@ -28,7 +32,10 @@ func SetupInMemoryApp() *App {
 func SetupTestApp() *App {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
-	jobStateMachine := provision.ConfigureJobStateMachine()
+	terraformConfig := config.Terraform
+	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
+	terraformStep := provision.NewTerraformStep(terraformTerraform)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep)
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
 	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()

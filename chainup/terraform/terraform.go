@@ -13,6 +13,11 @@ type Terraform struct {
 	path string
 }
 
+// ConfigureTerraform returns a configured Terraform instance.
+func ConfigureTerraform(cfg *Config) *Terraform {
+	return New(cfg.Path)
+}
+
 // New returns a new Terraform instance.
 func New(path string) *Terraform {
 	return &Terraform{

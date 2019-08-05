@@ -76,12 +76,13 @@ func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Se
 type JobBuilder struct {
 	serverName string
 	provider   *infrastructure.ProviderSettings
+	sshKey     *infrastructure.SSHKey
 }
 
 // NewJobBuilder returns a new JobBuilder instance.
 func NewJobBuilder() *JobBuilder {
 	return &JobBuilder{
-		serverName: randomdata.SillyName(),
+		serverName: "",
 	}
 }
 
@@ -101,13 +102,25 @@ func (b *JobBuilder) Provider(provider *infrastructure.ProviderSettings) *JobBui
 
 // Build constructs a Job instance along with a Server specification.
 func (b *JobBuilder) Build() (*Job, error) {
+	if b.serverName == "" {
+		b.serverName = randomdata.SillyName()
+	}
 	if b.provider == nil {
 		return nil, errors.New("missing provider configuration")
+	}
+	if b.sshKey == nil {
+		sshKey, err := infrastructure.GenerateNewSSHKey("ChainUP")
+		if err != nil {
+			return nil, errors.Wrap(err, "generate ssh key")
+		}
+
+		b.sshKey = sshKey
 	}
 
 	srv, err := infrastructure.NewServerBuilder().
 		Provider(b.provider.Type).
 		Name(b.serverName).
+		SSHKey(b.sshKey).
 		Build()
 	if err != nil {
 		return nil, errors.Wrap(err, "build server spec")

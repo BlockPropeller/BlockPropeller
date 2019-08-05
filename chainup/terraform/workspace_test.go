@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"chainup.dev/chainup/terraform"
+	"chainup.dev/chainup/terraform/resource/digitalocean"
 	"chainup.dev/lib/test"
 )
 
@@ -39,6 +40,34 @@ func TestWorkspaceHasUniqueWorkingDir(t *testing.T) {
 		t.Errorf("expected each workspace to have a unique work dir: got %s", w1.WorkDir())
 		return
 	}
+}
+
+func TestWorkspaceFlushesToDisk(t *testing.T) {
+	w, err := terraform.NewWorkspace()
+
+	test.CheckErr(t, "NewWorkspace()", err)
+	defer test.Close(t, w)
+
+	w.Add(digitalocean.NewProvider("test"))
+	w.AddResource(digitalocean.NewSSHKey("test-key", "0xPuB"))
+
+	err = w.Flush()
+	test.CheckErr(t, "Workspace.Flush()", err)
+
+	got, err := ioutil.ReadFile(filepath.Join(w.WorkDir(), "main.tf"))
+	test.CheckErr(t, "read main.tf", err)
+
+	want := `provider "digitalocean" {
+  "key" = "test"
+}
+
+resource "digitalocean_ssh_key" "test-key" {
+  "name" = "test-key"
+  "public_key" = "0xPuB"
+}
+
+`
+	test.AssertStringsEqual(t, "main.tf contents", string(got), want)
 }
 
 func TestWorkspaceCleanupOnClose(t *testing.T) {

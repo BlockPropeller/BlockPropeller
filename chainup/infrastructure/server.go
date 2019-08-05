@@ -34,6 +34,7 @@ func (id ServerID) String() string {
 type ServerBuilder struct {
 	name     string
 	provider ProviderType
+	sshKey   *SSHKey
 }
 
 // NewServerBuilder starts the process of building a server.
@@ -55,6 +56,13 @@ func (b *ServerBuilder) Provider(provider ProviderType) *ServerBuilder {
 	return b
 }
 
+// SSHKey configures the SSHKey used to access the server after provisioning.
+func (b *ServerBuilder) SSHKey(sshKey *SSHKey) *ServerBuilder {
+	b.sshKey = sshKey
+
+	return b
+}
+
 // Build assembles all the server configuration into a single server object.
 func (b *ServerBuilder) Build() (*Server, error) {
 	if b.name == "" {
@@ -63,8 +71,11 @@ func (b *ServerBuilder) Build() (*Server, error) {
 	if b.provider == "" {
 		return nil, errors.New("missing cloud provider")
 	}
+	if b.sshKey == nil {
+		return nil, errors.New("missing SSH key")
+	}
 
-	return NewServer(b.name, b.provider), nil
+	return NewServer(b.name, b.provider, b.sshKey), nil
 }
 
 // Server holds all the configuration values for a single provisioning server.
@@ -77,6 +88,8 @@ type Server struct {
 
 	Provider ProviderType `json:"provider"`
 
+	SSHKey *SSHKey `json:"ssh_key"`
+
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	CompletedAt time.Time `json:"completed_at,omitempty"`
@@ -85,15 +98,14 @@ type Server struct {
 // NewServer allows you to construct a provision server in a single line.
 //
 // If you need a fluent interface for constructing the Server, you can use the ServerBuilder.
-func NewServer(name string, provider ProviderType) *Server {
+func NewServer(name string, provider ProviderType, sshKey *SSHKey) *Server {
 	return &Server{
-		ID: NewServerID(),
-
 		Resource: statemachine.NewResource(StateRequested),
 
-		Name: name,
-
+		ID:       NewServerID(),
+		Name:     name,
 		Provider: provider,
+		SSHKey:   sshKey,
 
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

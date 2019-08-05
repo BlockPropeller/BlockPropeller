@@ -14,10 +14,10 @@ func SetupInMemoryApp() *App {
 		ProvideFileConfigProvider,
 
 		infrastructure.NewInMemoryServerRepository,
-		wire.Bind(new(infrastructure.ServerRepository), new(infrastructure.InMemoryServerRepository)),
+		wire.Bind(new(infrastructure.ServerRepository), new(*infrastructure.InMemoryServerRepository)),
 
 		provision.NewInMemoryJobRepository,
-		wire.Bind(new(provision.JobRepository), new(provision.InMemoryJobRepository)),
+		wire.Bind(new(provision.JobRepository), new(*provision.InMemoryJobRepository)),
 
 		AppSet,
 	))

@@ -3,6 +3,7 @@ package chainup
 import (
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/terraform"
 	"chainup.dev/lib/config"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
@@ -10,10 +11,12 @@ import (
 
 // AppSet keeps a set of all app level dependencies.
 var AppSet = wire.NewSet(
+	terraform.Set,
 	infrastructure.Set,
 	provision.Set,
 
 	ProvideConfig,
+	wire.FieldsOf(new(*Config), "Terraform"),
 	NewApp,
 )
 
