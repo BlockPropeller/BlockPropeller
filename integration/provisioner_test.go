@@ -25,9 +25,16 @@ func TestProvisioningJob(t *testing.T) {
 
 	err = app.Provisioner.Provision(context.Background(), job)
 	test.CheckErr(t, "run deploy command", err)
+	defer func() {
+		// Destroy infrastructure created for the test.
+		err = app.Provisioner.Undo(context.Background(), job)
+		test.CheckErr(t, "undo infrastructure", err)
+	}()
 
-	srv, err := app.ServerRepository.Find(job.Server.ID)
-	test.CheckErr(t, "find requested server", err)
+	//@TODO: Check for persistence later.
+	//srv, err := app.ServerRepository.Find(job.Server.ID)
+	//test.CheckErr(t, "find requested server", err)
+	srv := job.Server
 
 	test.AssertBoolEqual(t, "sever provisioning state",
 		srv.State.IsSuccessful, true)

@@ -121,5 +121,5 @@ func (prop ArrayProperty) Render() string {
 		values = append(values, value.Render())
 	}
 
-	return fmt.Sprintf("[ %s ]", strings.Join(values, ", "))
+	return fmt.Sprintf("[%s]", strings.Join(values, ", "))
 }

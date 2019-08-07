@@ -58,12 +58,12 @@ func TestWorkspaceFlushesToDisk(t *testing.T) {
 	test.CheckErr(t, "read main.tf", err)
 
 	want := `provider "digitalocean" {
-  "key" = "test"
+  token="test"
 }
 
 resource "digitalocean_ssh_key" "test-key" {
-  "name" = "test-key"
-  "public_key" = "0xPuB"
+  name="test-key"
+  public_key="0xPuB"
 }
 
 `

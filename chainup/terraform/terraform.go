@@ -1,9 +1,11 @@
 package terraform
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 
+	"chainup.dev/lib/log"
 	"github.com/pkg/errors"
 )
 
@@ -25,12 +27,69 @@ func New(path string) *Terraform {
 	}
 }
 
+// Init executes terraform init in the provided workspace.
+//
+// terraform init must be called before terraform plan or apply.
+func (tf *Terraform) Init(workspace *Workspace) error {
+	out, err := tf.exec(workspace.WorkDir(), "init", "-no-color", "-input=false")
+	log.Debug("terraform init", log.Fields{
+		"stdout": string(out),
+	})
+	if err != nil {
+		return errors.Wrap(err, "execute terraform init")
+	}
+
+	return nil
+}
+
+// Plan connects to the configured provider and creates a plan
+// for infrastructure that needs to be provisioned on the provider.
+func (tf *Terraform) Plan(workspace *Workspace) error {
+	out, err := tf.exec(workspace.WorkDir(), "plan", "-out=tfplan", "-no-color", "-input=false")
+	log.Debug("terraform plan", log.Fields{
+		"stdout": string(out),
+	})
+	if err != nil {
+		return errors.Wrap(err, "execute terraform plan")
+	}
+
+	return nil
+}
+
+// Apply executes the plan previously created by the Plan method.
+//
+// Plan method *must* be called before apply, otherwise apply will fail.
+func (tf *Terraform) Apply(workspace *Workspace) error {
+	out, err := tf.exec(workspace.WorkDir(), "apply", "-no-color", "-input=false", "tfplan")
+	log.Debug("terraform apply", log.Fields{
+		"stdout": string(out),
+	})
+	if err != nil {
+		return errors.Wrap(err, "execute terraform apply")
+	}
+
+	return nil
+}
+
+// Destroy destroys all resources provisioned on a configured provider.
+func (tf *Terraform) Destroy(workspace *Workspace) error {
+	out, err := tf.exec(workspace.WorkDir(), "destroy", "-no-color", "-auto-approve")
+	log.Debug("terraform destroy", log.Fields{
+		"stdout": string(out),
+	})
+	if err != nil {
+		return errors.Wrap(err, "execute terraform destroy")
+	}
+
+	return nil
+}
+
 // Version returns the version of the underlying binary.
 //
 // This method can be used as a health check whether the
 // binary is correctly configured.
 func (tf *Terraform) Version() (string, error) {
-	ver, err := tf.exec("version")
+	ver, err := tf.exec("", "version")
 	if err != nil {
 		return "", errors.Wrap(err, "get terraform version")
 	}
@@ -39,8 +98,14 @@ func (tf *Terraform) Version() (string, error) {
 }
 
 // exec wraps the interaction with the underlying binary.
-func (tf *Terraform) exec(args ...string) ([]byte, error) {
-	output, err := exec.Command(tf.path, args...).Output()
+func (tf *Terraform) exec(dir string, args ...string) ([]byte, error) {
+	cmd := exec.Command(tf.path, args...)
+	cmd.Env = append(os.Environ(), "TF_IN_AUTOMATION=true")
+	if dir != "" {
+		cmd.Dir = dir
+	}
+
+	output, err := cmd.Output()
 	if execErr, ok := err.(*exec.ExitError); ok {
 		return nil, errors.Wrapf(execErr,
 			"execution error for [terraform %s]: %s",

@@ -1,6 +1,8 @@
 package digitalocean
 
 import (
+	"strings"
+
 	"chainup.dev/chainup/terraform/resource"
 )
 
@@ -40,5 +42,5 @@ func (k *SSHKey) Name() string {
 func (k *SSHKey) Properties() *resource.Properties {
 	return resource.NewProperties().
 		Prop("name", resource.NewStringProperty(k.name)).
-		Prop("public_key", resource.NewStringProperty(k.pubKey))
+		Prop("public_key", resource.NewStringProperty(strings.Trim(k.pubKey, "\n")))
 }

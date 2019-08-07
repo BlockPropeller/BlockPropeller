@@ -6,6 +6,7 @@ import (
 
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
+	"chainup.dev/chainup/terraform"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -48,6 +49,8 @@ type Job struct {
 
 	ServerID infrastructure.ServerID `json:"-"`
 	Server   *infrastructure.Server  `json:"server"`
+
+	WorkspaceSnapshot *terraform.WorkspaceSnapshot
 
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
@@ -109,7 +112,7 @@ func (b *JobBuilder) Build() (*Job, error) {
 		return nil, errors.New("missing provider configuration")
 	}
 	if b.sshKey == nil {
-		sshKey, err := infrastructure.GenerateNewSSHKey("ChainUP")
+		sshKey, err := infrastructure.GenerateNewSSHKey("ChainUP - " + b.serverName)
 		if err != nil {
 			return nil, errors.Wrap(err, "generate ssh key")
 		}

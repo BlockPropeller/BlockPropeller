@@ -37,7 +37,7 @@ func TestResourceRendering(t *testing.T) {
 
 	got := resource.Render(res)
 	want := `resource "test_resource" "test-0" {
-  "name" = "test-0"
+  name="test-0"
 }
 `
 
@@ -50,8 +50,8 @@ func TestPropertiesRendering(t *testing.T) {
 		Prop("bar", resource.NewStringProperty("baz"))
 
 	got := props.Render()
-	want := `"foo" = "foo"
-"bar" = "baz"
+	want := `foo="foo"
+bar="baz"
 `
 
 	test.AssertStringsEqual(t, "props.Render()", got, want)
@@ -64,8 +64,8 @@ func TestPropertiesRenderingWithIndentation(t *testing.T) {
 		Indent(4)
 
 	got := props.Render()
-	want := `    "foo" = "foo"
-    "bar" = "baz"
+	want := `    foo="foo"
+    bar="baz"
 `
 
 	test.AssertStringsEqual(t, "props.Render with indentation", got, want)

@@ -35,7 +35,7 @@ type Provider struct {
 func NewProvider(key string) *Provider {
 	return &Provider{
 		props: resource.NewProperties().
-			Prop("key", resource.NewStringProperty(key)),
+			Prop("token", resource.NewStringProperty(key)),
 	}
 }
 

@@ -3,6 +3,7 @@ package provision
 import (
 	"context"
 
+	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
 	"chainup.dev/chainup/terraform"
 	"chainup.dev/chainup/terraform/resource/digitalocean"
@@ -56,7 +57,7 @@ func NewTerraformStep(tf *terraform.Terraform) *TerraformStep {
 func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulResource) error {
 	job := res.(*Job)
 
-	providerSettigns := job.ProviderSettings
+	providerSettings := job.ProviderSettings
 
 	server := job.Server
 	sshKey := server.SSHKey
@@ -76,11 +77,11 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 		"dir": workspace.WorkDir(),
 	})
 
-	workspace.Add(digitalocean.NewProvider(providerSettigns.Credentials))
+	workspace.Add(digitalocean.NewProvider(providerSettings.Credentials))
 
 	log.Debug("using provider", log.Fields{
-		"type":        providerSettigns.Type,
-		"credentials": providerSettigns.Credentials,
+		"type":        providerSettings.Type,
+		"credentials": providerSettings.Credentials,
 	})
 
 	doSSHKey := digitalocean.NewSSHKey(sshKey.Name, sshKey.EncodedPublicKey())
@@ -104,9 +105,31 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 		return errors.Wrap(err, "flush workspace")
 	}
 
-	//@TODO: Run terraform plan.
+	err = step.tf.Init(workspace)
+	if err != nil {
+		return errors.Wrap(err, "init workspace")
+	}
 
-	//@TODO: Run terraform execute.
+	err = step.tf.Plan(workspace)
+	if err != nil {
+		return errors.Wrap(err, "prepare execution plan")
+	}
+
+	err = step.tf.Apply(workspace)
+	if err != nil {
+		return errors.Wrap(err, "apply execution plan")
+	}
+
+	//@TODO: Extract server information from terraform output.
+	server.State = infrastructure.StateReady
+
+	snap, err := workspace.Snapshot()
+	if err != nil {
+		return errors.Wrap(err, "take workspace snapshot")
+	}
+
+	job.WorkspaceSnapshot = snap
+	job.SetState(StateCompleted)
 
 	return nil
 }

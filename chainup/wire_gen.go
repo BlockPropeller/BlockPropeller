@@ -21,7 +21,7 @@ func SetupInMemoryApp() *App {
 	terraformStep := provision.NewTerraformStep(terraformTerraform)
 	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep)
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository)
+	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	app := NewApp(config, provisioner, inMemoryServerRepository)
 	return app
@@ -37,7 +37,7 @@ func SetupTestApp() *App {
 	terraformStep := provision.NewTerraformStep(terraformTerraform)
 	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep)
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository)
+	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	app := NewApp(config, provisioner, inMemoryServerRepository)
 	return app

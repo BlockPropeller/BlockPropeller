@@ -11,7 +11,7 @@ func TestProviderRendering(t *testing.T) {
 	provider := digitalocean.NewProvider("foobar")
 
 	want := `provider "digitalocean" {
-  "key" = "foobar"
+  token="foobar"
 }
 `
 

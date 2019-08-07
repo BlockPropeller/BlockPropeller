@@ -18,11 +18,11 @@ func TestDropletRendering(t *testing.T) {
 	)
 
 	want := `resource "digitalocean_droplet" "example-0" {
-  "name" = "example-0"
-  "image" = "ubuntu-18-04-x64"
-  "region" = "fra1"
-  "size" = "s-4vcpu-8gb"
-  "ssh_keys" = [  ]
+  name="example-0"
+  image="ubuntu-18-04-x64"
+  region="fra1"
+  size="s-4vcpu-8gb"
+  ssh_keys=[]
 }
 `
 
@@ -42,11 +42,11 @@ func TestDropletWithSSHKey(t *testing.T) {
 	)
 
 	want := `resource "digitalocean_droplet" "example-0" {
-  "name" = "example-0"
-  "image" = "ubuntu-18-04-x64"
-  "region" = "fra1"
-  "size" = "s-4vcpu-8gb"
-  "ssh_keys" = [ digitalocean_ssh_key.default.id ]
+  name="example-0"
+  image="ubuntu-18-04-x64"
+  region="fra1"
+  size="s-4vcpu-8gb"
+  ssh_keys=[digitalocean_ssh_key.default.id]
 }
 `
 
@@ -69,11 +69,11 @@ func TestDropletWithMultipleSSHKeys(t *testing.T) {
 	)
 
 	want := `resource "digitalocean_droplet" "example-0" {
-  "name" = "example-0"
-  "image" = "ubuntu-18-04-x64"
-  "region" = "fra1"
-  "size" = "s-4vcpu-8gb"
-  "ssh_keys" = [ digitalocean_ssh_key.example.id, digitalocean_ssh_key.foo.id ]
+  name="example-0"
+  image="ubuntu-18-04-x64"
+  region="fra1"
+  size="s-4vcpu-8gb"
+  ssh_keys=[digitalocean_ssh_key.example.id, digitalocean_ssh_key.foo.id]
 }
 `
 
