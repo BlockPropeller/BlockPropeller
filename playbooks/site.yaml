@@ -1,0 +1,9 @@
+---
+- name: Provision binance nodes.
+  hosts: all
+  remote_user: root
+
+  roles:
+    - common
+    - docker
+    - binance
