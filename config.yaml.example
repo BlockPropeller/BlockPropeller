@@ -1,4 +1,8 @@
 env: development
 
 digital_ocean:
-  access_token: ~
+  access_token: ''
+
+ansible:
+  playbooks_dir: ''
+  keys_dir: ''

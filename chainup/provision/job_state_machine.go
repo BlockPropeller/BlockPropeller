@@ -3,6 +3,7 @@ package provision
 import (
 	"context"
 	"net"
+	"time"
 
 	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/infrastructure"
@@ -116,20 +117,28 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 		return errors.Wrap(err, "flush workspace")
 	}
 
+	log.Debug("running terraform init...")
+
 	err = step.tf.Init(workspace)
 	if err != nil {
 		return errors.Wrap(err, "init workspace")
 	}
+
+	log.Debug("running terraform plan...")
 
 	err = step.tf.Plan(workspace)
 	if err != nil {
 		return errors.Wrap(err, "prepare execution plan")
 	}
 
+	log.Debug("running terraform apply...")
+
 	err = step.tf.Apply(workspace)
 	if err != nil {
 		return errors.Wrap(err, "apply execution plan")
 	}
+
+	log.Debug("running terraform output...")
 
 	rawIP, err := step.tf.Output(workspace, "ip-address")
 	if err != nil {
@@ -175,6 +184,7 @@ func NewAnsibleStep(ans *ansible.Ansible) *AnsibleStep {
 // Step satisfies the Step interface.
 func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulResource) error {
 	job := res.(*Job)
+	srv := job.Server
 
 	version, err := step.ans.Version()
 	if err != nil {
@@ -184,6 +194,28 @@ func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulReso
 	log.Debug("using ansible", log.Fields{
 		"version": version,
 	})
+
+	log.Debug("running playbook...")
+
+	for tries := 5; tries > 0; tries-- {
+		log.Debug("waiting for server to become available", log.Fields{
+			"seconds": 5,
+		})
+		time.Sleep(5 * time.Second)
+
+		err = step.ans.RunPlaybook(srv)
+		if err != nil {
+			log.ErrorErr(err, "failed running playbook on server", log.Fields{
+				"tries": tries,
+			})
+			continue
+		}
+
+		break
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed running playbook on server")
+	}
 
 	job.SetState(StateCompleted)
 

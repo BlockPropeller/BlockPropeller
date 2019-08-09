@@ -9,7 +9,11 @@ import (
 )
 
 func TestAnsibleIsExecutable(t *testing.T) {
-	ans := ansible.New("/usr/local/bin/ansible-playbook")
+	ans := ansible.New(
+		"/usr/local/bin/ansible-playbook",
+		"../../playbooks",
+		"/tmp/chainup/ansible/keys",
+	)
 
 	version, err := ans.Version()
 	test.CheckErr(t, "get ansible version", err)
