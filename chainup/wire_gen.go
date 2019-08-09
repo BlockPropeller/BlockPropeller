@@ -6,6 +6,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/chainup/terraform"
@@ -19,7 +20,10 @@ func SetupInMemoryApp() *App {
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	terraformStep := provision.NewTerraformStep(terraformTerraform)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep)
+	ansibleConfig := config.Ansible
+	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
+	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
 	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
@@ -35,7 +39,10 @@ func SetupTestApp() *App {
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	terraformStep := provision.NewTerraformStep(terraformTerraform)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep)
+	ansibleConfig := config.Ansible
+	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
+	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
 	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()

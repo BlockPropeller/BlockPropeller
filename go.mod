@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/google/wire v0.3.0
 	github.com/joonix/log v0.0.0-20190524090622-13fe31bbdd7a
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect

@@ -37,11 +37,16 @@ type Resource interface {
 
 // ToID returns a `Property` containing the pointer to the provided resource.
 func ToID(res Resource) Property {
-	return NewRawProperty(fmt.Sprintf("%s.%s.id", res.Type(), FormatID(res.Name())))
+	return NewRawProperty(fmt.Sprintf("%s.%s.id", res.Type(), FormatName(res.Name())))
 }
 
-// FormatID converts the resource name into a format suitable for use in Terraform resource names.
-func FormatID(name string) string {
+// ToPropSelector returns a `Property` containing the pointer for a specific property of a resource.
+func ToPropSelector(res Resource, name string) Property {
+	return NewRawProperty(fmt.Sprintf("%s.%s.%s", res.Type(), FormatName(res.Name()), name))
+}
+
+// FormatName converts the resource name into a format suitable for use in Terraform resource names.
+func FormatName(name string) string {
 	return strings.ReplaceAll(name, " ", "")
 }
 
@@ -52,7 +57,7 @@ func Render(res Resource) string {
 	var buf bytes.Buffer
 
 	buf.WriteString(fmt.Sprintf("resource \"%s\" \"%s\" {\n",
-		res.Type(), FormatID(res.Name())))
+		res.Type(), FormatName(res.Name())))
 	buf.WriteString(res.Properties().Indent(2).Render())
 	buf.WriteString("}\n")
 

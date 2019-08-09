@@ -1,6 +1,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/chainup/terraform"
@@ -12,11 +13,12 @@ import (
 // AppSet keeps a set of all app level dependencies.
 var AppSet = wire.NewSet(
 	terraform.Set,
+	ansible.Set,
 	infrastructure.Set,
 	provision.Set,
 
 	ProvideConfig,
-	wire.FieldsOf(new(*Config), "Terraform"),
+	wire.FieldsOf(new(*Config), "Terraform", "Ansible"),
 	NewApp,
 )
 

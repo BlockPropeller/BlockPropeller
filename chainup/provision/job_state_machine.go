@@ -2,10 +2,13 @@ package provision
 
 import (
 	"context"
+	"net"
 
+	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
 	"chainup.dev/chainup/terraform"
+	"chainup.dev/chainup/terraform/resource"
 	"chainup.dev/chainup/terraform/resource/digitalocean"
 	"chainup.dev/lib/log"
 	"github.com/pkg/errors"
@@ -13,7 +16,10 @@ import (
 
 var (
 	// StateCreated is the starting point for a provisioning job.
-	StateCreated = statemachine.NewState("created")
+	StateCreated = statemachine.NewState("job_created")
+
+	// StateServerCreated is the state after terraform successfully creates the requested server.
+	StateServerCreated = statemachine.NewState("server_created")
 
 	// StateCompleted is the terminating state representing a successful provisioning job.
 	StateCompleted = statemachine.NewState("completed").Successful()
@@ -23,7 +29,7 @@ var (
 	StateFailed = statemachine.NewState("failed").Failure()
 
 	// ValidStates of a provision.Job.
-	ValidStates = []statemachine.State{StateCreated, StateCompleted, StateFailed}
+	ValidStates = []statemachine.State{StateCreated, StateServerCreated, StateCompleted, StateFailed}
 )
 
 // JobStateMachine defines the state machine for running provisioning jobs.
@@ -33,10 +39,11 @@ type JobStateMachine struct {
 
 // ConfigureJobStateMachine returns a preconfigured StateMachine
 // for running provisioning jobs.
-func ConfigureJobStateMachine(tfStep *TerraformStep) *JobStateMachine {
+func ConfigureJobStateMachine(tfStep *TerraformStep, ansibleStep *AnsibleStep) *JobStateMachine {
 	return &JobStateMachine{
 		StateMachine: statemachine.Builder(ValidStates).
 			Step(StateCreated, tfStep).
+			Step(StateServerCreated, ansibleStep).
 			Build(),
 	}
 }
@@ -100,6 +107,10 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 
 	workspace.AddResource(doSSHKey, doDroplet)
 
+	ipAddressOut := resource.NewOutput("ip-address", resource.ToPropSelector(doDroplet, "ipv4_address"))
+
+	workspace.Add(ipAddressOut)
+
 	err = workspace.Flush()
 	if err != nil {
 		return errors.Wrap(err, "flush workspace")
@@ -120,7 +131,21 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 		return errors.Wrap(err, "apply execution plan")
 	}
 
-	//@TODO: Extract server information from terraform output.
+	rawIP, err := step.tf.Output(workspace, "ip-address")
+	if err != nil {
+		return errors.Wrap(err, "get ip address of provisioned server")
+	}
+
+	ip := net.ParseIP(rawIP)
+	if ip == nil {
+		return errors.Errorf("invalid server IP: %s", rawIP)
+	}
+
+	log.Debug("server provisioned", log.Fields{
+		"ip": ip.String(),
+	})
+
+	server.IPAddress = ip
 	server.State = infrastructure.StateReady
 
 	snap, err := workspace.Snapshot()
@@ -129,6 +154,37 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 	}
 
 	job.WorkspaceSnapshot = snap
+	job.SetState(StateServerCreated)
+
+	return nil
+}
+
+// AnsibleStep connects to a previously created server
+// and runs an Ansible playbook for provisioning deployments on top of it.
+type AnsibleStep struct {
+	ans *ansible.Ansible
+}
+
+// NewAnsibleStep returns a new AnsibleStep instance.
+func NewAnsibleStep(ans *ansible.Ansible) *AnsibleStep {
+	return &AnsibleStep{
+		ans: ans,
+	}
+}
+
+// Step satisfies the Step interface.
+func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulResource) error {
+	job := res.(*Job)
+
+	version, err := step.ans.Version()
+	if err != nil {
+		return errors.Wrap(err, "check ansible version")
+	}
+
+	log.Debug("using ansible", log.Fields{
+		"version": version,
+	})
+
 	job.SetState(StateCompleted)
 
 	return nil

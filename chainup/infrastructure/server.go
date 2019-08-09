@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"net"
 	"sync"
 	"time"
 
@@ -89,6 +90,8 @@ type Server struct {
 	Provider ProviderType `json:"provider"`
 
 	SSHKey *SSHKey `json:"ssh_key"`
+
+	IPAddress net.IP `json:"ip_address"`
 
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`

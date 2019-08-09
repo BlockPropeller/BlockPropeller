@@ -4,16 +4,18 @@ import (
 	"testing"
 
 	"chainup.dev/chainup/terraform"
+	"chainup.dev/lib/test"
+	"github.com/blang/semver"
 )
 
 func TestTerraformIsExecutable(t *testing.T) {
 	tf := terraform.New("/usr/local/bin/terraform")
 
-	_, err := tf.Version()
-	if err != nil {
-		t.Errorf("failed checking terraform version: %s", err)
-		return
-	}
+	version, err := tf.Version()
+	test.CheckErr(t, "get terraform version", err)
+
+	_, err = semver.New(version)
+	test.CheckErr(t, "invalid terraform version format", err)
 }
 
 func TestPlanSimpleResource(t *testing.T) {

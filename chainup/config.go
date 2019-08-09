@@ -1,6 +1,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/terraform"
 	"github.com/pkg/errors"
 )
@@ -10,6 +11,7 @@ type Config struct {
 	DigitalOcean *DigitalOceanConfig `yaml:"digital_ocean"`
 
 	Terraform *terraform.Config `yaml:"terraform"`
+	Ansible   *ansible.Config   `yaml:"ansible"`
 }
 
 // Validate satisfies the config.Config interface.

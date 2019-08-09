@@ -71,6 +71,21 @@ func (tf *Terraform) Apply(workspace *Workspace) error {
 	return nil
 }
 
+// Output returns the value of a defined output by a given name.
+//
+// Terraform apply must have been called beforehand in order for the output command to work.
+func (tf *Terraform) Output(workspace *Workspace, name string) (string, error) {
+	out, err := tf.exec(workspace.WorkDir(), "output", "-no-color", name)
+	log.Debug("terraform output", log.Fields{
+		"stdout": string(out),
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "execute terraform output")
+	}
+
+	return strings.Trim(string(out), " \n"), nil
+}
+
 // Destroy destroys all resources provisioned on a configured provider.
 func (tf *Terraform) Destroy(workspace *Workspace) error {
 	out, err := tf.exec(workspace.WorkDir(), "destroy", "-no-color", "-auto-approve")
@@ -89,12 +104,19 @@ func (tf *Terraform) Destroy(workspace *Workspace) error {
 // This method can be used as a health check whether the
 // binary is correctly configured.
 func (tf *Terraform) Version() (string, error) {
-	ver, err := tf.exec("", "version")
+	out, err := tf.exec("", "version")
 	if err != nil {
 		return "", errors.Wrap(err, "get terraform version")
 	}
 
-	return string(ver), nil
+	outLines := strings.Split(string(out), "\n")
+	versionLine := outLines[0]
+	versionParts := strings.Split(versionLine, " ")
+	if len(versionParts) != 2 {
+		return versionLine, nil
+	}
+
+	return strings.TrimPrefix(versionParts[1], "v"), nil
 }
 
 // exec wraps the interaction with the underlying binary.

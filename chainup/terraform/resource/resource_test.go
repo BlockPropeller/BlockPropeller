@@ -32,6 +32,15 @@ func TestResourceToID(t *testing.T) {
 	test.AssertStringsEqual(t, "ToID()", got, want)
 }
 
+func TestResourceToIPAddress(t *testing.T) {
+	res := testResource{}
+
+	got := resource.ToPropSelector(res, "ipv4_address").Render()
+	want := "test_resource.test-0.ipv4_address"
+
+	test.AssertStringsEqual(t, "ToPropSelector()", got, want)
+}
+
 func TestResourceRendering(t *testing.T) {
 	res := testResource{}
 

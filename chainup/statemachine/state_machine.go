@@ -135,6 +135,9 @@ func (res *Resource) SetState(state State) {
 // Step represents a single unit of execution inside a state machine.
 //
 // Each step is associated with a single state which triggers it.
+//
+// @TODO: Consider updating the interface to return the next resource state. Update that state outside of step.
+// @TODO: Consider adding an UndoableStep as a new interface to enable steps to provide undo functionality.
 type Step interface {
 	Step(ctx context.Context, res StatefulResource) error
 }
