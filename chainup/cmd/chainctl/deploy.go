@@ -8,6 +8,7 @@ import (
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/lib/log"
+	"github.com/blang/semver"
 	"github.com/urfave/cli"
 )
 
@@ -64,7 +65,10 @@ func DeployCmd(app *chainup.App) cli.Command {
 				return
 			}
 
-			providerKey := c.String("key")
+			providerKey := app.Config.DigitalOcean.AccessToken
+			if c.String("key") != "" {
+				providerKey = c.String("key")
+			}
 			if providerKey == "" {
 				log.Error("Invalid provider key flag. The key must not be empty.")
 				return
@@ -76,16 +80,21 @@ func DeployCmd(app *chainup.App) cli.Command {
 				"provider_type": providerType.String(),
 			})
 
-			job, err := provision.NewJobBuilder().
-				Provider(infrastructure.NewProviderSettings(providerType, providerKey)).
+			provider := infrastructure.NewProviderSettings(providerType, providerKey)
+
+			srv, err := infrastructure.NewServerBuilder().
+				Provider(provider.Type).
 				Build()
 
-			server, err := infrastructure.NewServerBuilder().
-				Provider(providerType).
+			job, err := provision.NewJobBuilder().
+				Provider(provider).
+				Server(srv).
+				Deployment(binance.NewNodeDeployment(
+					network,
+					nodeType,
+					semver.MustParse("0.6.1"),
+				)).
 				Build()
-			if err != nil {
-				log.ErrorErr(err, "Failed building server request")
-			}
 
 			err = app.Provisioner.Provision(context.Background(), job)
 			if err != nil {
@@ -93,9 +102,9 @@ func DeployCmd(app *chainup.App) cli.Command {
 				return
 			}
 
-			log.Info("Finished provisioning server", log.Fields{
-				"id":    server.ID,
-				"state": server.State,
+			log.Info("Finished provisioning job", log.Fields{
+				"id":    job.ID,
+				"state": job.State,
 			})
 		},
 	}

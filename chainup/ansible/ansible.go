@@ -1,7 +1,6 @@
 package ansible
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -44,24 +43,30 @@ func New(path string, playbooksDir string, keysDir string) *Ansible {
 
 // RunPlaybook executes the playbook on a specified Server
 // and applying the provided deployment configuration.
-func (ans *Ansible) RunPlaybook(srv *infrastructure.Server) error {
+func (ans *Ansible) RunPlaybook(srv *infrastructure.Server, deployment *infrastructure.Deployment) error {
 	keyPath, err := ans.setupSSHKey(srv.SSHKey)
 	if err != nil {
 		return errors.Wrap(err, "setup ssh key")
 	}
 	defer ans.cleanupSSHKey(keyPath)
 
+	var extraVars []string
+	for key, value := range deployment.Configuration {
+		extraVars = append(extraVars, key+"="+value)
+	}
+
 	out, err := ans.exec(
 		ans.playbooksDir,
-		fmt.Sprintf("--inventory=%s,", srv.IPAddress),
-		fmt.Sprintf("--key-file=%s", keyPath),
+		"--inventory", srv.IPAddress.String()+",",
+		"--key-file", keyPath,
+		"--extra-vars", strings.Join(extraVars, " "),
 		"site.yaml",
 	)
 	log.Debug("run ansible-playbook", log.Fields{
 		"stdout": string(out),
 	})
 	if err != nil {
-		return errors.Wrap(err, "execute terraform output")
+		return errors.Wrap(err, "execute ansible playbook")
 	}
 
 	return nil

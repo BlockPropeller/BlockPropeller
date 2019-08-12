@@ -7,7 +7,6 @@ import (
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
 	"chainup.dev/chainup/terraform"
-	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
@@ -50,6 +49,9 @@ type Job struct {
 	ServerID infrastructure.ServerID `json:"-"`
 	Server   *infrastructure.Server  `json:"server"`
 
+	DeploymentID infrastructure.DeploymentID `json:"-"`
+	Deployment   *infrastructure.Deployment  `json:"deployment"`
+
 	WorkspaceSnapshot *terraform.WorkspaceSnapshot
 
 	CreatedAt  time.Time `json:"created_at"`
@@ -58,7 +60,7 @@ type Job struct {
 }
 
 // NewJob returns a new Job instance.
-func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Server) *Job {
+func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Server, deployment *infrastructure.Deployment) *Job {
 	return &Job{
 		ID: NewJobID(),
 
@@ -70,6 +72,9 @@ func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Se
 		ServerID: server.ID,
 		Server:   server,
 
+		DeploymentID: deployment.ID,
+		Deployment:   deployment,
+
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -77,21 +82,20 @@ func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Se
 
 // JobBuilder allows for fluent job definition.
 type JobBuilder struct {
-	serverName string
-	provider   *infrastructure.ProviderSettings
-	sshKey     *infrastructure.SSHKey
+	provider      *infrastructure.ProviderSettings
+	server        *infrastructure.Server
+	serverBuilder *infrastructure.ServerBuilder
+	deployment    *infrastructure.Deployment
 }
 
 // NewJobBuilder returns a new JobBuilder instance.
 func NewJobBuilder() *JobBuilder {
-	return &JobBuilder{
-		serverName: "",
-	}
+	return &JobBuilder{}
 }
 
-// ServerName specifies a name to be used to identify the new server.
-func (b *JobBuilder) ServerName(name string) *JobBuilder {
-	b.serverName = name
+// Server specification that should be provisioned
+func (b *JobBuilder) Server(server *infrastructure.Server) *JobBuilder {
+	b.server = server
 
 	return b
 }
@@ -103,33 +107,26 @@ func (b *JobBuilder) Provider(provider *infrastructure.ProviderSettings) *JobBui
 	return b
 }
 
+// Deployment which is to be provisioned on new infrastructure.
+func (b *JobBuilder) Deployment(deployment *infrastructure.Deployment) *JobBuilder {
+	b.deployment = deployment
+
+	return b
+}
+
 // Build constructs a Job instance along with a Server specification.
 func (b *JobBuilder) Build() (*Job, error) {
-	if b.serverName == "" {
-		b.serverName = randomdata.SillyName()
-	}
 	if b.provider == nil {
 		return nil, errors.New("missing provider configuration")
 	}
-	if b.sshKey == nil {
-		sshKey, err := infrastructure.GenerateNewSSHKey("ChainUP - " + b.serverName)
-		if err != nil {
-			return nil, errors.Wrap(err, "generate ssh key")
-		}
-
-		b.sshKey = sshKey
+	if b.server == nil {
+		return nil, errors.New("missing server configuration")
+	}
+	if b.deployment == nil {
+		return nil, errors.New("missing deployment configuration")
 	}
 
-	srv, err := infrastructure.NewServerBuilder().
-		Provider(b.provider.Type).
-		Name(b.serverName).
-		SSHKey(b.sshKey).
-		Build()
-	if err != nil {
-		return nil, errors.Wrap(err, "build server spec")
-	}
-
-	return NewJob(b.provider, srv), nil
+	return NewJob(b.provider, b.server, b.deployment), nil
 }
 
 // JobRepository defines an interface for storing and retrieving provisioning jobs.

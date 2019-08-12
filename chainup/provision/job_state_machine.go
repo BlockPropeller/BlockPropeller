@@ -185,6 +185,7 @@ func NewAnsibleStep(ans *ansible.Ansible) *AnsibleStep {
 func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulResource) error {
 	job := res.(*Job)
 	srv := job.Server
+	deployment := job.Deployment
 
 	version, err := step.ans.Version()
 	if err != nil {
@@ -203,7 +204,7 @@ func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulReso
 		})
 		time.Sleep(5 * time.Second)
 
-		err = step.ans.RunPlaybook(srv)
+		err = step.ans.RunPlaybook(srv, deployment)
 		if err != nil {
 			log.ErrorErr(err, "failed running playbook on server", log.Fields{
 				"tries": tries,
@@ -216,6 +217,9 @@ func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulReso
 	if err != nil {
 		return errors.Wrap(err, "failed running playbook on server")
 	}
+
+	deployment.State = infrastructure.DeploymentStateRunning
+	srv.AddDeployment(deployment)
 
 	job.SetState(StateCompleted)
 

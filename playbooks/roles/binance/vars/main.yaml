@@ -1,0 +1,7 @@
+---
+binance_chain_ids:
+  prod: 'Binance-Chain-Tigris'
+  testnet: 'Binance-Chain-Nile'
+binance_nodes:
+  prod: 'tcp://dataseed1.binance.org:80'
+  testnet: 'tcp://data-seed-pre-0-s1.binance.org:80'

@@ -10,6 +10,8 @@ import (
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/chainup/terraform"
+	"chainup.dev/lib/log"
+	"testing"
 )
 
 // Injectors from inject_local.go:
@@ -27,13 +29,15 @@ func SetupInMemoryApp() *App {
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
 	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
-	app := NewApp(config, provisioner, inMemoryServerRepository)
+	logConfig := config.Log
+	consoleLogger := log.NewConsoleLogger(logConfig)
+	app := NewApp(config, provisioner, inMemoryServerRepository, consoleLogger)
 	return app
 }
 
 // Injectors from inject_testing.go:
 
-func SetupTestApp() *App {
+func SetupTestApp(t *testing.T) *App {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
 	terraformConfig := config.Terraform
@@ -46,6 +50,7 @@ func SetupTestApp() *App {
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
 	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
-	app := NewApp(config, provisioner, inMemoryServerRepository)
+	testingLogger := log.NewTestingLogger(t)
+	app := NewApp(config, provisioner, inMemoryServerRepository, testingLogger)
 	return app
 }

@@ -2,34 +2,54 @@ package integration_test
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"testing"
+	"time"
 
 	"chainup.dev/chainup"
+	"chainup.dev/chainup/binance"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/lib/test"
+	"github.com/blang/semver"
 )
 
 func TestProvisioningJob(t *testing.T) {
 	test.Integration(t)
 
-	app := chainup.SetupTestApp()
+	app := chainup.SetupTestApp(t)
 
 	provider := infrastructure.NewProviderSettings(
 		infrastructure.ProviderDigitalOcean, app.Config.DigitalOcean.AccessToken)
 
+	server, err := infrastructure.NewServerBuilder().
+		Provider(provider.Type).
+		Build()
+	test.CheckErr(t, "build server spec", err)
+
 	job, err := provision.NewJobBuilder().
 		Provider(provider).
+		Server(server).
+		Deployment(binance.NewNodeDeployment(
+			binance.NetworkTest,
+			binance.TypeLightNode,
+			semver.MustParse("0.6.1"),
+		)).
 		Build()
 	test.CheckErr(t, "build job spec", err)
 
 	err = app.Provisioner.Provision(context.Background(), job)
-	test.CheckErr(t, "run deploy command", err)
 	defer func() {
+		if job.WorkspaceSnapshot == nil {
+			return
+		}
+
 		// Destroy infrastructure created for the test.
 		err = app.Provisioner.Undo(context.Background(), job)
 		test.CheckErr(t, "undo infrastructure", err)
 	}()
+	test.CheckErr(t, "run deploy command", err)
 
 	//@TODO: Check for persistence later.
 	//srv, err := app.ServerRepository.Find(job.Server.ID)
@@ -40,4 +60,14 @@ func TestProvisioningJob(t *testing.T) {
 		srv.State.IsSuccessful, true)
 	test.AssertStringsEqual(t, "server provider",
 		srv.Provider.String(), infrastructure.ProviderDigitalOcean.String())
+
+	test.AssertIntsEqual(t, "server has deployment", len(srv.Deployments), 1)
+	test.AssertStringsEqual(t, "deployment ready",
+		srv.Deployments[0].State.String(), infrastructure.DeploymentStateRunning.String())
+
+	// Test binance chain node is reachable.
+	time.Sleep(5 * time.Second)
+	resp, err := http.Get(fmt.Sprintf("http://%s:27147/status", srv.IPAddress.String()))
+	test.CheckErr(t, "get node status", err)
+	test.AssertIntsEqual(t, "node returns healthy response", resp.StatusCode, 200)
 }

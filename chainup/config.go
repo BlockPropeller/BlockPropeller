@@ -3,11 +3,14 @@ package chainup
 import (
 	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/terraform"
+	"chainup.dev/lib/log"
 	"github.com/pkg/errors"
 )
 
 // Config is the root config structure declaring all possible configuration parameters.
 type Config struct {
+	Log *log.Config `yaml:"log"`
+
 	DigitalOcean *DigitalOceanConfig `yaml:"digital_ocean"`
 
 	Terraform *terraform.Config `yaml:"terraform"`

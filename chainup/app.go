@@ -3,6 +3,7 @@ package chainup
 import (
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
+	"chainup.dev/lib/log"
 )
 
 // App is a container that holds all necessary dependencies
@@ -15,9 +16,13 @@ type App struct {
 	Provisioner *provision.Provisioner
 
 	ServerRepository infrastructure.ServerRepository
+
+	Logger log.Logger
 }
 
 // NewApp returns a new App instance.
-func NewApp(config *Config, provisioner *provision.Provisioner, serverRepository infrastructure.ServerRepository) *App {
-	return &App{Config: config, Provisioner: provisioner, ServerRepository: serverRepository}
+func NewApp(config *Config, provisioner *provision.Provisioner, serverRepository infrastructure.ServerRepository, logger log.Logger) *App {
+	log.SetGlobal(logger)
+
+	return &App{Config: config, Provisioner: provisioner, ServerRepository: serverRepository, Logger: logger}
 }

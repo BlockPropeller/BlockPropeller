@@ -14,3 +14,7 @@
     name: docker-ce
     state: latest
     update_cache: yes
+
+- name: Install docker python package
+  pip:
+    name: docker

@@ -1,4 +1,4 @@
-.PHONY: setup tools mod generate fmt lint test watch precommit integration
+.PHONY: setup tools mod generate fmt lint build-all test watch precommit integration
 
 setup: tools
 	git config core.hooksPath .githooks
@@ -20,13 +20,16 @@ fmt:
 lint:
 	revive --config revive.toml -formatter friendly ./...
 
+build-all:
+	go build ./...
+
 test:
 	go test ./... -p 1 -short
 
 watch:
 	goconvey .
 
-precommit: mod generate fmt lint test
+precommit: mod generate fmt lint build-all test
 
 integration:
 	 go test ./integration

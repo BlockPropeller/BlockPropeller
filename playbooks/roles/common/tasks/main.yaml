@@ -15,5 +15,8 @@
       - software-properties-common
       - git
       - vim
+      - python-apt
+      - python-pip
+      - python3-pip
     state: latest
     update_cache: yes

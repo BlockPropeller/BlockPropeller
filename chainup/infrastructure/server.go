@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"chainup.dev/chainup/statemachine"
+	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -67,13 +68,18 @@ func (b *ServerBuilder) SSHKey(sshKey *SSHKey) *ServerBuilder {
 // Build assembles all the server configuration into a single server object.
 func (b *ServerBuilder) Build() (*Server, error) {
 	if b.name == "" {
-		return nil, errors.New("missing server name")
+		b.name = randomdata.SillyName()
 	}
 	if b.provider == "" {
 		return nil, errors.New("missing cloud provider")
 	}
 	if b.sshKey == nil {
-		return nil, errors.New("missing SSH key")
+		sshKey, err := GenerateNewSSHKey("ChainUP - " + b.name)
+		if err != nil {
+			return nil, errors.Wrap(err, "generate ssh key")
+		}
+
+		b.sshKey = sshKey
 	}
 
 	return NewServer(b.name, b.provider, b.sshKey), nil
@@ -92,6 +98,8 @@ type Server struct {
 	SSHKey *SSHKey `json:"ssh_key"`
 
 	IPAddress net.IP `json:"ip_address"`
+
+	Deployments []*Deployment `json:"deployments"`
 
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -113,6 +121,12 @@ func NewServer(name string, provider ProviderType, sshKey *SSHKey) *Server {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+}
+
+// AddDeployment associates a deployment with a server it is deployed on.
+func (srv *Server) AddDeployment(deployment *Deployment) {
+	deployment.ServerID = srv.ID
+	srv.Deployments = append(srv.Deployments, deployment)
 }
 
 // ServerRepository defines an interface for storing and retrieving provisioning servers.
