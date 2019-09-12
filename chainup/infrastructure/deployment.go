@@ -24,8 +24,8 @@ type Deployment struct {
 	ID       DeploymentID `json:"id"`
 	ServerID ServerID     `json:"-"`
 
-	Type          DeploymentType    `json:"type"`
-	Configuration map[string]string `json:"configuration"`
+	Type          DeploymentType   `json:"type"`
+	Configuration DeploymentConfig `json:"configuration"`
 
 	State DeploymentState `json:"state"`
 
@@ -34,7 +34,7 @@ type Deployment struct {
 }
 
 // NewDeployment returns a new Deployment instance.
-func NewDeployment(typ DeploymentType, config map[string]string) *Deployment {
+func NewDeployment(typ DeploymentType, config DeploymentConfig) *Deployment {
 	return &Deployment{
 		ID: NewDeploymentID(),
 

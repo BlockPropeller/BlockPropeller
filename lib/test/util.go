@@ -48,6 +48,16 @@ func CheckErr(t *testing.T, name string, err error) {
 	t.FailNow()
 }
 
+// CheckErrExists fails the currently running test if the provided error is nil.
+func CheckErrExists(t *testing.T, name string, err error) {
+	if err != nil {
+		return
+	}
+
+	t.Errorf("%s: expected error, got none", name)
+	t.FailNow()
+}
+
 // Close reports any errors that occurred while closing the provided io.Closer
 // to the testing framework.
 //

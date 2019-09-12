@@ -51,7 +51,7 @@ func (ans *Ansible) RunPlaybook(srv *infrastructure.Server, deployment *infrastr
 	defer ans.cleanupSSHKey(keyPath)
 
 	var extraVars []string
-	for key, value := range deployment.Configuration {
+	for key, value := range deployment.Configuration.MarshalMap() {
 		extraVars = append(extraVars, key+"="+value)
 	}
 

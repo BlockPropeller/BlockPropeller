@@ -2,8 +2,6 @@ package integration_test
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"testing"
 	"time"
 
@@ -67,7 +65,7 @@ func TestProvisioningJob(t *testing.T) {
 
 	// Test binance chain node is reachable.
 	time.Sleep(5 * time.Second)
-	resp, err := http.Get(fmt.Sprintf("http://%s:27147/status", srv.IPAddress.String()))
-	test.CheckErr(t, "get node status", err)
-	test.AssertIntsEqual(t, "node returns healthy response", resp.StatusCode, 200)
+
+	err = infrastructure.CheckHealth(srv, srv.Deployments[0])
+	test.CheckErr(t, "check node health", err)
 }
