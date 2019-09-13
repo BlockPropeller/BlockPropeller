@@ -3,8 +3,6 @@
 package chainup
 
 import (
-	"testing"
-
 	"chainup.dev/chainup/database/transaction"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
@@ -12,12 +10,13 @@ import (
 	"github.com/google/wire"
 )
 
-// SetupTestApp constructs an in-memory variant of the StateMachine handling Server state transitions.
-func SetupTestApp(t *testing.T) *App {
+// SetupInMemoryApp constructs an in-memory variant of the ChainUP App.
+func SetupInMemoryApp() *App {
 	panic(wire.Build(
-		ProvideTestConfigProvider,
-		log.NewTestingLogger,
-		wire.Bind(new(log.Logger), new(*log.TestingLogger)),
+		ProvideFileConfigProvider,
+
+		log.NewConsoleLogger,
+		wire.Bind(new(log.Logger), new(*log.ConsoleLogger)),
 
 		transaction.NewInMemoryTransactionContext,
 		wire.Bind(new(transaction.TxContext), new(*transaction.InMemoryTxContext)),

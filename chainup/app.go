@@ -13,16 +13,29 @@ import (
 type App struct {
 	Config *Config
 
-	Provisioner *provision.Provisioner
+	ProviderSettingsRepository infrastructure.ProviderSettingsRepository
 
-	ServerRepository infrastructure.ServerRepository
+	JobScheduler *provision.JobScheduler
+	Provisioner  *provision.Provisioner
 
 	Logger log.Logger
 }
 
 // NewApp returns a new App instance.
-func NewApp(config *Config, provisioner *provision.Provisioner, serverRepository infrastructure.ServerRepository, logger log.Logger) *App {
+func NewApp(
+	config *Config,
+	providerSettingsRepo infrastructure.ProviderSettingsRepository,
+	jobScheduler *provision.JobScheduler,
+	provisioner *provision.Provisioner,
+	logger log.Logger,
+) *App {
 	log.SetGlobal(logger)
 
-	return &App{Config: config, Provisioner: provisioner, ServerRepository: serverRepository, Logger: logger}
+	return &App{
+		Config:                     config,
+		ProviderSettingsRepository: providerSettingsRepo,
+		JobScheduler:               jobScheduler,
+		Provisioner:                provisioner,
+		Logger:                     logger,
+	}
 }

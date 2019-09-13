@@ -9,5 +9,6 @@ var Set = wire.NewSet(
 	NewAnsibleStep,
 	ConfigureJobStateMachine,
 
+	NewJobScheduler,
 	NewProvisioner,
 )

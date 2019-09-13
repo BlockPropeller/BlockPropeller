@@ -5,6 +5,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	// LevelDebug is the string representation of a debug log level.
+	LevelDebug = "debug"
+)
+
 // Config exposes the configuration parameters of the log package
 // in the form compatible with the config package.
 type Config struct {

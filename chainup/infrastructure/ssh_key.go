@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"database/sql/driver"
 	"encoding/pem"
 
 	"github.com/pkg/errors"
@@ -12,11 +13,50 @@ import (
 
 const defaultKeySize = 4096
 
+// PrivateKey is a database friendly representation of a rsa.PrivateKey.
+type PrivateKey struct {
+	rsa.PrivateKey
+}
+
+// NewPrivateKey returns a new PrivateKey instance.
+func NewPrivateKey(pk *rsa.PrivateKey) *PrivateKey {
+	return &PrivateKey{
+		*pk,
+	}
+}
+
+// Value implements the sql.Valuer interface.
+func (pk *PrivateKey) Value() (driver.Value, error) {
+	return x509.MarshalPKCS1PrivateKey(&pk.PrivateKey), nil
+}
+
+// Scan implements the sql.Scanner interface.
+func (pk *PrivateKey) Scan(src interface{}) error {
+	var data []byte
+	switch v := src.(type) {
+	case string:
+		data = []byte(v)
+	case []byte:
+		data = v
+	default:
+		return errors.New("invalid private key type")
+	}
+
+	privKey, err := x509.ParsePKCS1PrivateKey(data)
+	if err != nil {
+		return errors.Wrap(err, "parse private key")
+	}
+
+	*pk = *NewPrivateKey(privKey)
+
+	return nil
+}
+
 // SSHKey is a private key that can be used as an authentication mechanism
 // for logging into provisioned servers.
 type SSHKey struct {
-	Name       string
-	PrivateKey *rsa.PrivateKey
+	Name       string      `json:"name"`
+	PrivateKey *PrivateKey `json:"-" gorm:"type:text"`
 }
 
 // GenerateNewSSHKey generates a new random private key.
@@ -33,14 +73,14 @@ func GenerateNewSSHKey(name string) (*SSHKey, error) {
 
 	return &SSHKey{
 		Name:       name,
-		PrivateKey: privateKey,
+		PrivateKey: NewPrivateKey(privateKey),
 	}, nil
 }
 
 // EncodedPrivateKey encodes the private key into PEM format suitable for usage inside files.
 func (key *SSHKey) EncodedPrivateKey() string {
 	// Get ASN.1 DER format
-	privDER := x509.MarshalPKCS1PrivateKey(key.PrivateKey)
+	privDER := x509.MarshalPKCS1PrivateKey(&key.PrivateKey.PrivateKey)
 
 	// pem.Block
 	privBlock := pem.Block{

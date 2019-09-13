@@ -1,4 +1,10 @@
+log:
+  level: info
+
 env: development
+
+database:
+  dialect: sqlite3
 
 digital_ocean:
   access_token: ''

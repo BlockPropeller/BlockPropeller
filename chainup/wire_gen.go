@@ -7,6 +7,8 @@ package chainup
 
 import (
 	"chainup.dev/chainup/ansible"
+	"chainup.dev/chainup/database"
+	"chainup.dev/chainup/database/transaction"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/chainup/terraform"
@@ -14,11 +16,22 @@ import (
 	"testing"
 )
 
-// Injectors from inject_local.go:
+// Injectors from inject_database.go:
 
-func SetupInMemoryApp() *App {
+func SetupDatabaseApp() (*App, func(), error) {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
+	databaseConfig := config.Database
+	logConfig := config.Log
+	db, cleanup, err := database.ProvideDB(databaseConfig, logConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	providerSettingsRepository := database.NewProviderSettingsRepository(db)
+	jobRepository := database.NewJobRepository(db)
+	serverRepository := database.NewServerRepository(db)
+	deploymentRepository := database.NewDeploymentRepository(db)
+	jobScheduler := provision.NewJobScheduler(db, jobRepository, serverRepository, deploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	terraformStep := provision.NewTerraformStep(terraformTerraform)
@@ -26,12 +39,36 @@ func SetupInMemoryApp() *App {
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
 	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
 	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
+	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
+	consoleLogger := log.NewConsoleLogger(logConfig)
+	app := NewApp(config, providerSettingsRepository, jobScheduler, provisioner, consoleLogger)
+	return app, func() {
+		cleanup()
+	}, nil
+}
+
+// Injectors from inject_memory.go:
+
+func SetupInMemoryApp() *App {
+	provider := ProvideFileConfigProvider()
+	config := ProvideConfig(provider)
+	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
+	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
+	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
+	terraformConfig := config.Terraform
+	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
+	terraformStep := provision.NewTerraformStep(terraformTerraform)
+	ansibleConfig := config.Ansible
+	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
+	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
+	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, provisioner, inMemoryServerRepository, consoleLogger)
+	app := NewApp(config, inMemoryProviderSettingsRepository, jobScheduler, provisioner, consoleLogger)
 	return app
 }
 
@@ -40,6 +77,12 @@ func SetupInMemoryApp() *App {
 func SetupTestApp(t *testing.T) *App {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
+	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
+	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
+	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
+	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	terraformStep := provision.NewTerraformStep(terraformTerraform)
@@ -47,10 +90,8 @@ func SetupTestApp(t *testing.T) *App {
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
 	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
 	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
-	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	provisioner := provision.NewProvisioner(jobStateMachine, inMemoryJobRepository, terraformTerraform)
-	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
 	testingLogger := log.NewTestingLogger(t)
-	app := NewApp(config, provisioner, inMemoryServerRepository, testingLogger)
+	app := NewApp(config, inMemoryProviderSettingsRepository, jobScheduler, provisioner, testingLogger)
 	return app
 }

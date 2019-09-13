@@ -6,6 +6,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/google/wire v0.3.0
+	github.com/jinzhu/gorm v1.9.10
 	github.com/joonix/log v0.0.0-20190524090622-13fe31bbdd7a
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
@@ -18,6 +19,5 @@ require (
 	golang.org/x/sys v0.0.0-20190911201528-7ad0cfa0b7b5 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/genproto v0.0.0-20190911173649-1774047e7e51 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )

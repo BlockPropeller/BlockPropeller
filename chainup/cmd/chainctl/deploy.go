@@ -81,6 +81,11 @@ func DeployCmd(app *chainup.App) cli.Command {
 			})
 
 			provider := infrastructure.NewProviderSettings(providerType, providerKey)
+			err := app.ProviderSettingsRepository.Create(context.TODO(), provider)
+			if err != nil {
+				log.ErrorErr(err, "Failed saving provider settings.")
+				return
+			}
 
 			srv, err := infrastructure.NewServerBuilder().
 				Provider(provider.Type).
@@ -96,7 +101,13 @@ func DeployCmd(app *chainup.App) cli.Command {
 				)).
 				Build()
 
-			err = app.Provisioner.Provision(context.Background(), job)
+			err = app.JobScheduler.Schedule(context.TODO(), job)
+			if err != nil {
+				log.ErrorErr(err, "Failed scheduling job")
+				return
+			}
+
+			err = app.Provisioner.Provision(context.Background(), job.ID)
 			if err != nil {
 				log.ErrorErr(err, "Failed running server state machine")
 				return

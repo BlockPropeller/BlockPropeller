@@ -15,7 +15,7 @@ type HealthCheck interface {
 
 // CheckHealth checks a Deployment health based on a configured HealthCheck.
 func CheckHealth(srv *Server, deployment *Deployment) error {
-	spec, err := getDeploymentSpec(deployment.Type)
+	spec, err := GetDeploymentSpec(deployment.Type)
 	if err != nil {
 		return err
 	}

@@ -1,12 +1,14 @@
-.PHONY: setup tools mod generate fmt lint build-all test watch precommit integration
+.PHONY: setup tools mod generate fmt lint build-all test watch precommit integration graph
 
 setup: tools
+	mkdir .chainup
 	git config core.hooksPath .githooks
 
 tools:
 	cd ~ && \
-		go get github.com/mgechev/revive@b70717f5395a29c099e82291e6fdf6168642faac && \
-		go get github.com/smartystreets/goconvey@68dc04aab96ae4326137d6b77330c224063a927e
+		go get github.com/mgechev/revive@v0.0.0-20190910172647-84deee41635a && \
+		go get github.com/smartystreets/goconvey@v0.0.0-20190731233626-505e41936337 && \
+		go get github.com/KyleBanks/depth/cmd/depth@v1.2.1
 
 mod:
 	go mod tidy

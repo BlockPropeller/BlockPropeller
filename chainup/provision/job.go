@@ -1,6 +1,7 @@
 package provision
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -41,22 +42,22 @@ func (id JobID) String() string {
 type Job struct {
 	ID JobID `json:"id"`
 
-	statemachine.Resource
+	statemachine.Resource `gorm:"embedded"`
 
-	ProviderSettingsID infrastructure.ProviderSettingsID `json:"-"`
+	ProviderSettingsID infrastructure.ProviderSettingsID `json:"-" sql:"type:varchar(255) REFERENCES provider_settings(id)"`
 	ProviderSettings   *infrastructure.ProviderSettings  `json:"provider_settings"`
 
-	ServerID infrastructure.ServerID `json:"-"`
+	ServerID infrastructure.ServerID `json:"-" sql:"type:varchar(255) REFERENCES servers(id)"`
 	Server   *infrastructure.Server  `json:"server"`
 
-	DeploymentID infrastructure.DeploymentID `json:"-"`
+	DeploymentID infrastructure.DeploymentID `json:"-" sql:"type:varchar(255) REFERENCES deployments(id)"`
 	Deployment   *infrastructure.Deployment  `json:"deployment"`
 
 	WorkspaceSnapshot *terraform.WorkspaceSnapshot
 
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	FinishedAt time.Time `json:"finished_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+	FinishedAt *time.Time `json:"finished_at,omitempty"`
 }
 
 // NewJob returns a new Job instance.
@@ -126,19 +127,21 @@ func (b *JobBuilder) Build() (*Job, error) {
 		return nil, errors.New("missing deployment configuration")
 	}
 
+	b.server.AddDeployment(b.deployment)
+
 	return NewJob(b.provider, b.server, b.deployment), nil
 }
 
 // JobRepository defines an interface for storing and retrieving provisioning jobs.
 type JobRepository interface {
 	// Find a Job given a JobID.
-	Find(id JobID) (*Job, error)
+	Find(ctx context.Context, id JobID) (*Job, error)
 
 	// Create a new Job.
-	Create(job *Job) error
+	Create(ctx context.Context, job *Job) error
 
 	// Update an existing Job.
-	Update(job *Job) error
+	Update(ctx context.Context, job *Job) error
 }
 
 // InMemoryJobRepository holds the jobs inside an in-memory map.
@@ -154,7 +157,7 @@ func NewInMemoryJobRepository() *InMemoryJobRepository {
 }
 
 // Find a Job given a JobID.
-func (repo *InMemoryJobRepository) Find(id JobID) (*Job, error) {
+func (repo *InMemoryJobRepository) Find(ctx context.Context, id JobID) (*Job, error) {
 	req, ok := repo.jobs.Load(id)
 	if !ok {
 		return nil, ErrJobNotFound
@@ -164,7 +167,7 @@ func (repo *InMemoryJobRepository) Find(id JobID) (*Job, error) {
 }
 
 // Create a new Job.
-func (repo *InMemoryJobRepository) Create(job *Job) error {
+func (repo *InMemoryJobRepository) Create(ctx context.Context, job *Job) error {
 	_, loaded := repo.jobs.LoadOrStore(job.ID, job)
 	if loaded {
 		return ErrJobAlreadyExists
@@ -174,7 +177,7 @@ func (repo *InMemoryJobRepository) Create(job *Job) error {
 }
 
 // Update an existing Job.
-func (repo *InMemoryJobRepository) Update(job *Job) error {
+func (repo *InMemoryJobRepository) Update(ctx context.Context, job *Job) error {
 	repo.jobs.Store(job.ID, job)
 
 	return nil

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"chainup.dev/chainup"
@@ -21,12 +21,18 @@ func AppCmd(app *chainup.App) *cli.App {
 }
 
 func main() {
-	app := chainup.SetupInMemoryApp()
+	app, closeFn, err := chainup.SetupDatabaseApp()
+	if err != nil {
+		fmt.Printf("failed setting up database app: %s\n", err)
+		os.Exit(1)
+	}
+	defer closeFn()
 
 	cmd := AppCmd(app)
 
-	err := cmd.Run(os.Args)
+	err = cmd.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

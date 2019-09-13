@@ -12,22 +12,22 @@ import (
 type Provisioner struct {
 	StateMachine *JobStateMachine
 
-	JobRepository JobRepository
+	Scheduler *JobScheduler
 
 	//@TODO: Abstract away terraform from here?
 	Terraform *terraform.Terraform
 }
 
 // NewProvisioner returns a new Provisioner instance.
-func NewProvisioner(stateMachine *JobStateMachine, jobRepository JobRepository, terraform *terraform.Terraform) *Provisioner {
-	return &Provisioner{StateMachine: stateMachine, JobRepository: jobRepository, Terraform: terraform}
+func NewProvisioner(stateMachine *JobStateMachine, jobScheduler *JobScheduler, terraform *terraform.Terraform) *Provisioner {
+	return &Provisioner{StateMachine: stateMachine, Scheduler: jobScheduler, Terraform: terraform}
 }
 
 // Provision starts the provisioning process and returns after it is complete.
-func (p *Provisioner) Provision(ctx context.Context, job *Job) error {
-	err := p.JobRepository.Create(job)
+func (p *Provisioner) Provision(ctx context.Context, jobID JobID) error {
+	job, err := p.Scheduler.FindScheduled(ctx, jobID)
 	if err != nil {
-		return errors.Wrap(err, "create job")
+		return errors.Wrap(err, "find job to provision")
 	}
 
 	//@TODO: Create resource creation request for machines that need to be created and services that need to be running on top.

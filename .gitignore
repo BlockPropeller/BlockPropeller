@@ -1,8 +1,9 @@
-.idea
-.vscode
+.idea/
+.vscode/
 
 .DS_Store
 
+.chainup/
 config.yaml
 
 cp.out

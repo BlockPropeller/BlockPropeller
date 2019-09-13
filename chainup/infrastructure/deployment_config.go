@@ -3,6 +3,7 @@ package infrastructure
 import "github.com/pkg/errors"
 
 var (
+	//@TODO: This pattern diverges from the wire dependency injection. We might want to move this to wire style config.
 	registeredDeploymentTypes map[DeploymentType]DeploymentSpec
 )
 
@@ -31,8 +32,8 @@ func RegisterDeploymentType(typ DeploymentType, spec DeploymentSpec) {
 	registeredDeploymentTypes[typ] = spec
 }
 
-// getDeploymentSpec returns a DeploymentSpec for the requested type, failing if none is found.
-func getDeploymentSpec(typ DeploymentType) (DeploymentSpec, error) {
+// GetDeploymentSpec returns a DeploymentSpec for the requested type, failing if none is found.
+func GetDeploymentSpec(typ DeploymentType) (DeploymentSpec, error) {
 	spec, ok := registeredDeploymentTypes[typ]
 	if !ok {
 		return nil, errors.Errorf("unknown deployment type: %s", typ)

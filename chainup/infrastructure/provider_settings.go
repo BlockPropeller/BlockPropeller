@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -57,13 +58,13 @@ func NewProviderSettings(providerType ProviderType, credentials string) *Provide
 // ProviderSettingsRepository defines an interface for storing and retrieving provisioning provider settings.
 type ProviderSettingsRepository interface {
 	// Find a ProviderSettings given a ProviderSettingsID.
-	Find(id ProviderSettingsID) (*ProviderSettings, error)
+	Find(ctx context.Context, id ProviderSettingsID) (*ProviderSettings, error)
 
 	// Create a new ProviderSettings.
-	Create(providerSettings *ProviderSettings) error
+	Create(ctx context.Context, providerSettings *ProviderSettings) error
 
 	// Update an existing ProviderSettings.
-	Update(providerSettings *ProviderSettings) error
+	Update(ctx context.Context, providerSettings *ProviderSettings) error
 }
 
 // InMemoryProviderSettingsRepository holds the provider settings inside an in-memory map.
@@ -79,7 +80,7 @@ func NewInMemoryProviderSettingsRepository() *InMemoryProviderSettingsRepository
 }
 
 // Find a ProviderSettings given a ProviderSettingsID.
-func (repo *InMemoryProviderSettingsRepository) Find(id ProviderSettingsID) (*ProviderSettings, error) {
+func (repo *InMemoryProviderSettingsRepository) Find(ctx context.Context, id ProviderSettingsID) (*ProviderSettings, error) {
 	req, ok := repo.providerSettings.Load(id)
 	if !ok {
 		return nil, ErrProviderSettingsNotFound
@@ -89,7 +90,7 @@ func (repo *InMemoryProviderSettingsRepository) Find(id ProviderSettingsID) (*Pr
 }
 
 // Create a new ProviderSettings.
-func (repo *InMemoryProviderSettingsRepository) Create(providerSettings *ProviderSettings) error {
+func (repo *InMemoryProviderSettingsRepository) Create(ctx context.Context, providerSettings *ProviderSettings) error {
 	_, loaded := repo.providerSettings.LoadOrStore(providerSettings.ID, providerSettings)
 	if loaded {
 		return ErrProviderSettingsAlreadyExists
@@ -99,7 +100,7 @@ func (repo *InMemoryProviderSettingsRepository) Create(providerSettings *Provide
 }
 
 // Update an existing ProviderSettings.
-func (repo *InMemoryProviderSettingsRepository) Update(providerSettings *ProviderSettings) error {
+func (repo *InMemoryProviderSettingsRepository) Update(ctx context.Context, providerSettings *ProviderSettings) error {
 	repo.providerSettings.Store(providerSettings.ID, providerSettings)
 
 	return nil

@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"net"
 	"sync"
 	"time"
@@ -89,21 +90,21 @@ func (b *ServerBuilder) Build() (*Server, error) {
 type Server struct {
 	ID ServerID `json:"id"`
 
-	statemachine.Resource
+	statemachine.Resource `gorm:"embedded"`
 
 	Name string `json:"name"`
 
 	Provider ProviderType `json:"provider"`
 
-	SSHKey *SSHKey `json:"ssh_key"`
+	SSHKey *SSHKey `json:"ssh_key" gorm:"embedded;embedded_prefix:ssh_key_"`
 
-	IPAddress net.IP `json:"ip_address"`
+	IPAddress net.IP `json:"ip_address" gorm:"type:varchar(255)"`
 
 	Deployments []*Deployment `json:"deployments"`
 
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	CompletedAt time.Time `json:"completed_at,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
 
 // NewServer allows you to construct a provision server in a single line.
@@ -132,13 +133,13 @@ func (srv *Server) AddDeployment(deployment *Deployment) {
 // ServerRepository defines an interface for storing and retrieving provisioning servers.
 type ServerRepository interface {
 	// Find a Server given a ServerID.
-	Find(id ServerID) (*Server, error)
+	Find(ctx context.Context, id ServerID) (*Server, error)
 
 	// Create a new Server.
-	Create(server *Server) error
+	Create(ctx context.Context, server *Server) error
 
 	// Update an existing Server.
-	Update(server *Server) error
+	Update(ctx context.Context, server *Server) error
 }
 
 // InMemoryServerRepository holds the servers inside an in-memory map.
@@ -154,7 +155,7 @@ func NewInMemoryServerRepository() *InMemoryServerRepository {
 }
 
 // Find a Server given a ServerID.
-func (repo *InMemoryServerRepository) Find(id ServerID) (*Server, error) {
+func (repo *InMemoryServerRepository) Find(ctx context.Context, id ServerID) (*Server, error) {
 	req, ok := repo.servers.Load(id)
 	if !ok {
 		return nil, ErrServerNotFound
@@ -164,7 +165,7 @@ func (repo *InMemoryServerRepository) Find(id ServerID) (*Server, error) {
 }
 
 // Create a new Server.
-func (repo *InMemoryServerRepository) Create(server *Server) error {
+func (repo *InMemoryServerRepository) Create(ctx context.Context, server *Server) error {
 	_, loaded := repo.servers.LoadOrStore(server.ID, server)
 	if loaded {
 		return ErrServerAlreadyExists
@@ -174,7 +175,7 @@ func (repo *InMemoryServerRepository) Create(server *Server) error {
 }
 
 // Update an existing Server.
-func (repo *InMemoryServerRepository) Update(server *Server) error {
+func (repo *InMemoryServerRepository) Update(ctx context.Context, server *Server) error {
 	repo.servers.Store(server.ID, server)
 
 	return nil

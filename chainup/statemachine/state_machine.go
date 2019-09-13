@@ -2,6 +2,7 @@ package statemachine
 
 import (
 	"context"
+	"database/sql/driver"
 	"encoding/json"
 
 	"github.com/pkg/errors"
@@ -26,6 +27,30 @@ type State struct {
 
 	IsFinished   bool
 	IsSuccessful bool
+}
+
+// Scan implements the sql.Scanner interface.
+func (s *State) Scan(src interface{}) error {
+	var name string
+	switch v := src.(type) {
+	case string:
+		name = v
+	case []byte:
+		name = string(v)
+	default:
+		return errors.New("unknown state type")
+	}
+
+	*s = State{
+		Name: name,
+	}
+
+	return nil
+}
+
+// Value implements the sql.Valuer interface.
+func (s State) Value() (driver.Value, error) {
+	return s.Name, nil
 }
 
 // NewState returns a new named state instance.
@@ -112,7 +137,7 @@ type StatefulResource interface {
 // of the StatefulResource can be used instead. Resource struct can be copied as a
 // starting point it modifications are needed.
 type Resource struct {
-	State State `json:"state"`
+	State State `json:"state" gorm:"type:varchar(20)"`
 }
 
 // NewResource returns an initialized Resource with an initial state.
