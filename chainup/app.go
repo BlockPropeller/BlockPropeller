@@ -14,6 +14,7 @@ type App struct {
 	Config *Config
 
 	ProviderSettingsRepository infrastructure.ProviderSettingsRepository
+	ServerRepository           infrastructure.ServerRepository
 
 	JobScheduler *provision.JobScheduler
 	Provisioner  *provision.Provisioner
@@ -25,6 +26,7 @@ type App struct {
 func NewApp(
 	config *Config,
 	providerSettingsRepo infrastructure.ProviderSettingsRepository,
+	serverRepo infrastructure.ServerRepository,
 	jobScheduler *provision.JobScheduler,
 	provisioner *provision.Provisioner,
 	logger log.Logger,
@@ -34,6 +36,7 @@ func NewApp(
 	return &App{
 		Config:                     config,
 		ProviderSettingsRepository: providerSettingsRepo,
+		ServerRepository:           serverRepo,
 		JobScheduler:               jobScheduler,
 		Provisioner:                provisioner,
 		Logger:                     logger,

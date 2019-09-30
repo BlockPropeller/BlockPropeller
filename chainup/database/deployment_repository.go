@@ -65,6 +65,27 @@ func (repo *DeploymentRepository) Update(ctx context.Context, deployment *infras
 	return nil
 }
 
+// DeleteForServer deletes all deployments associated with a given Server.
+func (repo *DeploymentRepository) DeleteForServer(ctx context.Context, srv *infrastructure.Server) error {
+	err := repo.db.Model(ctx, infrastructure.Deployment{}).
+		Where("server_id = ?", srv.ID).
+		Updates(infrastructure.Deployment{State: infrastructure.DeploymentStateDeleted}).
+		Error
+	if err != nil {
+		return errors.Wrap(err, "set state as deleted")
+	}
+
+	err = repo.db.Model(ctx, (*infrastructure.Deployment)(nil)).
+		Where("server_id = ?", srv.ID).
+		Delete(&infrastructure.Deployment{}).
+		Error
+	if err != nil {
+		return errors.Wrap(err, "delete deployments for server")
+	}
+
+	return nil
+}
+
 func (repo *DeploymentRepository) prepareDeployment(deployment *infrastructure.Deployment) error {
 	data, err := json.Marshal(deployment.Configuration.MarshalMap())
 	if err != nil {

@@ -60,6 +60,11 @@ func (db *DB) Model(ctx context.Context, value interface{}) *gorm.DB {
 	return db.getDB(ctx).Model(value)
 }
 
+// Table is a wrapper around the method for a gorm.DB method with the same name.
+func (db *DB) Table(ctx context.Context, name string) *gorm.DB {
+	return db.getDB(ctx).Table(name)
+}
+
 // Close satisfies the Closer interface.
 func (db *DB) Close() error {
 	return db.db.Close()

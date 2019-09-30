@@ -40,8 +40,9 @@ type Deployment struct {
 
 	State DeploymentState `json:"state"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 // NewDeployment returns a new Deployment instance.
@@ -71,6 +72,9 @@ type DeploymentRepository interface {
 
 	// Update an existing Deployment.
 	Update(ctx context.Context, deployment *Deployment) error
+
+	// DeleteForServer deletes all deployments associated with a given Server.
+	DeleteForServer(ctx context.Context, srv *Server) error
 }
 
 // InMemoryDeploymentRepository holds the deployments inside an in-memory map.
@@ -108,6 +112,22 @@ func (repo *InMemoryDeploymentRepository) Create(ctx context.Context, deployment
 // Update an existing Deployment.
 func (repo *InMemoryDeploymentRepository) Update(ctx context.Context, deployment *Deployment) error {
 	repo.deployments.Store(deployment.ID, deployment)
+
+	return nil
+}
+
+// DeleteForServer deletes all deployments associated with a given Server.
+func (repo *InMemoryDeploymentRepository) DeleteForServer(ctx context.Context, srv *Server) error {
+	repo.deployments.Range(func(k, v interface{}) bool {
+		deployment := v.(*Deployment)
+		if deployment.ServerID.String() != srv.ID.String() {
+			return true
+		}
+
+		repo.deployments.Delete(k)
+
+		return true
+	})
 
 	return nil
 }

@@ -52,19 +52,17 @@ func TestProvisioningJob(t *testing.T) {
 	}()
 	test.CheckErr(t, "run deploy command", err)
 
-	//@TODO: Check for persistence later.
-	//srv, err := app.ServerRepository.Find(job.Server.ID)
-	//test.CheckErr(t, "find requested server", err)
-	srv := job.Server
+	srv, err := app.ServerRepository.Find(context.TODO(), server.ID)
+	test.CheckErr(t, "find requested server", err)
 
 	test.AssertStringsEqual(t, "sever provisioning state",
-		srv.State.String(), infrastructure.ServerStateRunning.String())
+		srv.State.String(), infrastructure.ServerStateOk.String())
 	test.AssertStringsEqual(t, "server provider",
 		srv.Provider.String(), infrastructure.ProviderDigitalOcean.String())
 
 	test.AssertIntsEqual(t, "server has deployment", len(srv.Deployments), 1)
 	test.AssertStringsEqual(t, "deployment ready",
-		srv.Deployments[0].State.String(), infrastructure.DeploymentStateRunning.String())
+		srv.Deployments[0].State.String(), infrastructure.DeploymentStateOk.String())
 
 	// Test binance chain node is reachable.
 	time.Sleep(5 * time.Second)

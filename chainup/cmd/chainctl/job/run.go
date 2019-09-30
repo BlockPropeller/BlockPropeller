@@ -1,4 +1,4 @@
-package main
+package job
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 	"github.com/urfave/cli"
 )
 
-// DeployCmd is a command for creating new infrastructure and deploying a Binance Chain node on top of it.
+// runCmd is a command for creating new infrastructure and deploying a Binance Chain node on top of it.
 //
 // This command serves as an MVP for the infrastructure and provisioning of ChainUP.
-func DeployCmd(app *chainup.App) cli.Command {
+func runCmd(app *chainup.App) cli.Command {
 	return cli.Command{
-		Name:  "deploy",
-		Usage: "Deploy a new Binance Chain node.",
+		Name:  "run",
+		Usage: "Run a new Binance Chain node job.",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "network",

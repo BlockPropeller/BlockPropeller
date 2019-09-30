@@ -23,10 +23,10 @@ type Renderer interface {
 //
 // This allows us to modify and delete infrastructure initially deployed with Terraform.
 type WorkspaceSnapshot struct {
-	WorkspacePath        string
-	TerraformDefinitions string
-	TerraformPlan        string
-	TerraformState       string
+	WorkspacePath        string `gorm:"column:workspace_path;type:text"`
+	TerraformDefinitions string `gorm:"column:definitions;type:text"`
+	TerraformPlan        string `gorm:"column:plan;type:text"`
+	TerraformState       string `gorm:"column:state;type:text"`
 }
 
 // Workspace handles laying out and a set of `Resource`s

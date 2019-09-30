@@ -3,21 +3,18 @@ package infrastructure
 var (
 	// ServerStateRequested describes the requested server specification.
 	ServerStateRequested = NewServerState("requested")
-
-	// ServerStateProvisioning indicates that the server is being provisioned by the infrastructure provider.
-	ServerStateProvisioning = NewServerState("provisioning")
-
-	// ServerStateRunning is the final success state of a Server.
-	ServerStateRunning = NewServerState("running")
-
+	// ServerStateOk is the final success state of a Server.
+	ServerStateOk = NewServerState("ok")
+	// ServerStateDeleted represents servers that have been deleted from the their infrastructure provider.
+	ServerStateDeleted = NewServerState("deleted")
 	// ServerStateFailed is the terminating state representing provisioning server failure.
 	ServerStateFailed = NewServerState("failed")
 
 	// ValidServerStates that are recognized by ChainUP.
 	ValidServerStates = []ServerState{
 		ServerStateRequested,
-		ServerStateProvisioning,
-		ServerStateRunning,
+		ServerStateOk,
+		ServerStateDeleted,
 		ServerStateFailed,
 	}
 )

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"chainup.dev/chainup/terraform"
-	"chainup.dev/lib/log"
 	"github.com/pkg/errors"
 )
 
@@ -16,11 +15,23 @@ type Provisioner struct {
 
 	//@TODO: Abstract away terraform from here?
 	Terraform *terraform.Terraform
+
+	ServerDestroyer *ServerDestroyer
 }
 
 // NewProvisioner returns a new Provisioner instance.
-func NewProvisioner(stateMachine *JobStateMachine, jobScheduler *JobScheduler, terraform *terraform.Terraform) *Provisioner {
-	return &Provisioner{StateMachine: stateMachine, Scheduler: jobScheduler, Terraform: terraform}
+func NewProvisioner(
+	stateMachine *JobStateMachine,
+	jobScheduler *JobScheduler,
+	terraform *terraform.Terraform,
+	srvDestroyer *ServerDestroyer,
+) *Provisioner {
+	return &Provisioner{
+		StateMachine:    stateMachine,
+		Scheduler:       jobScheduler,
+		Terraform:       terraform,
+		ServerDestroyer: srvDestroyer,
+	}
 }
 
 // Provision starts the provisioning process and returns after it is complete.
@@ -36,29 +47,9 @@ func (p *Provisioner) Provision(ctx context.Context, jobID JobID) error {
 
 // Undo provisioned infrastructure based on the terraform Workspace.
 func (p *Provisioner) Undo(ctx context.Context, job *Job) error {
-	srv := job.Server
-	if srv == nil || srv.WorkspaceSnapshot == nil {
-		return errors.New("missing workspace snapshot")
+	if job.Server == nil {
+		return errors.New("missing server associated with the job")
 	}
 
-	workspace, err := terraform.RestoreWorkspace(srv.WorkspaceSnapshot)
-	if err != nil {
-		return errors.Wrap(err, "restore workspace")
-	}
-	defer func() {
-		log.Debug("cleaning up Terraform workspace")
-		log.Closer(workspace)
-	}()
-
-	err = p.Terraform.Init(workspace)
-	if err != nil {
-		return errors.Wrap(err, "init workspace")
-	}
-
-	err = p.Terraform.Destroy(workspace)
-	if err != nil {
-		return errors.Wrap(err, "destroy workspace")
-	}
-
-	return nil
+	return p.ServerDestroyer.Destroy(ctx, job.Server)
 }

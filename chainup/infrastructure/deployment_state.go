@@ -3,12 +3,15 @@ package infrastructure
 var (
 	// DeploymentStateRequested is the initial state of any Deployment.
 	// It is used to signify that the Deployment is waiting to be processed.
-	DeploymentStateRequested DeploymentState = "requested"
-	// DeploymentStateRunning is the final success state of a deployment.
-	DeploymentStateRunning DeploymentState = "running"
+	DeploymentStateRequested = NewDeploymentState("requested")
+	// DeploymentStateOk is the final success state of a deployment.
+	DeploymentStateOk = NewDeploymentState("ok")
+	// DeploymentStateDeleted represents deployments that have either been
+	// removed from the machine or the machine has beed destroyed entirely.
+	DeploymentStateDeleted = NewDeploymentState("deleted")
 
 	// ValidDeploymentStates that are recognized by ChainUP.
-	ValidDeploymentStates = []DeploymentState{DeploymentStateRequested, DeploymentStateRunning}
+	ValidDeploymentStates = []DeploymentState{DeploymentStateRequested, DeploymentStateOk, DeploymentStateDeleted}
 )
 
 // DeploymentState defines a valid Deployment state.

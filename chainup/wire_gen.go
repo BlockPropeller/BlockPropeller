@@ -29,21 +29,24 @@ func SetupDatabaseApp() (*App, func(), error) {
 		return nil, nil, err
 	}
 	providerSettingsRepository := database.NewProviderSettingsRepository(db)
-	jobRepository := database.NewJobRepository(db)
 	serverRepository := database.NewServerRepository(db)
+	jobRepository := database.NewJobRepository(db)
 	deploymentRepository := database.NewDeploymentRepository(db)
 	jobScheduler := provision.NewJobScheduler(db, jobRepository, serverRepository, deploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
-	terraformStep := provision.NewTerraformStep(terraformTerraform, serverRepository, jobRepository)
+	serverProvisioner := provision.NewServerProvisioner(terraformTerraform, serverRepository)
+	stepProvisionServer := provision.NewStepProvisionServer(serverProvisioner, jobRepository)
 	ansibleConfig := config.Ansible
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
-	ansibleStep := provision.NewAnsibleStep(ansibleAnsible, deploymentRepository, jobRepository)
+	deploymentProvisioner := provision.NewDeploymentProvisioner(ansibleAnsible, deploymentRepository)
+	stepProvisionDeployment := provision.NewStepProvisionDeployment(deploymentProvisioner, jobRepository)
 	transactional := middleware.NewTransactional(db)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep, transactional)
-	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
+	jobStateMachine := provision.ConfigureJobStateMachine(stepProvisionServer, stepProvisionDeployment, transactional)
+	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, db, serverRepository, deploymentRepository)
+	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, providerSettingsRepository, jobScheduler, provisioner, consoleLogger)
+	app := NewApp(config, providerSettingsRepository, serverRepository, jobScheduler, provisioner, consoleLogger)
 	return app, func() {
 		cleanup()
 	}, nil
@@ -55,23 +58,26 @@ func SetupInMemoryApp() *App {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
-	terraformStep := provision.NewTerraformStep(terraformTerraform, inMemoryServerRepository, inMemoryJobRepository)
+	serverProvisioner := provision.NewServerProvisioner(terraformTerraform, inMemoryServerRepository)
+	stepProvisionServer := provision.NewStepProvisionServer(serverProvisioner, inMemoryJobRepository)
 	ansibleConfig := config.Ansible
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
-	ansibleStep := provision.NewAnsibleStep(ansibleAnsible, inMemoryDeploymentRepository, inMemoryJobRepository)
+	deploymentProvisioner := provision.NewDeploymentProvisioner(ansibleAnsible, inMemoryDeploymentRepository)
+	stepProvisionDeployment := provision.NewStepProvisionDeployment(deploymentProvisioner, inMemoryJobRepository)
 	transactional := middleware.NewTransactional(inMemoryTxContext)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep, transactional)
-	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
+	jobStateMachine := provision.ConfigureJobStateMachine(stepProvisionServer, stepProvisionDeployment, transactional)
+	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
+	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, inMemoryProviderSettingsRepository, jobScheduler, provisioner, consoleLogger)
+	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, jobScheduler, provisioner, consoleLogger)
 	return app
 }
 
@@ -81,21 +87,24 @@ func SetupTestApp(t *testing.T) *App {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
-	terraformStep := provision.NewTerraformStep(terraformTerraform, inMemoryServerRepository, inMemoryJobRepository)
+	serverProvisioner := provision.NewServerProvisioner(terraformTerraform, inMemoryServerRepository)
+	stepProvisionServer := provision.NewStepProvisionServer(serverProvisioner, inMemoryJobRepository)
 	ansibleConfig := config.Ansible
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
-	ansibleStep := provision.NewAnsibleStep(ansibleAnsible, inMemoryDeploymentRepository, inMemoryJobRepository)
+	deploymentProvisioner := provision.NewDeploymentProvisioner(ansibleAnsible, inMemoryDeploymentRepository)
+	stepProvisionDeployment := provision.NewStepProvisionDeployment(deploymentProvisioner, inMemoryJobRepository)
 	transactional := middleware.NewTransactional(inMemoryTxContext)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep, transactional)
-	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
+	jobStateMachine := provision.ConfigureJobStateMachine(stepProvisionServer, stepProvisionDeployment, transactional)
+	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
+	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	testingLogger := log.NewTestingLogger(t)
-	app := NewApp(config, inMemoryProviderSettingsRepository, jobScheduler, provisioner, testingLogger)
+	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, jobScheduler, provisioner, testingLogger)
 	return app
 }

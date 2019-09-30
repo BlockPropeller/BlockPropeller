@@ -19,12 +19,22 @@ var (
 	ErrServerAlreadyExists = errors.New("server already exists")
 )
 
+var (
+	// NilServerID is the value of a nil ServerID.
+	NilServerID ServerID
+)
+
 // ServerID is a unique server identifier.
 type ServerID string
 
 // NewServerID returns a new unique ServerID.
 func NewServerID() ServerID {
 	return ServerID(uuid.NewV4().String())
+}
+
+// ServerIDFromString creates a ServerID from a string.
+func ServerIDFromString(id string) ServerID {
+	return ServerID(id)
 }
 
 // String satisfies the Stringer interface.
@@ -102,11 +112,12 @@ type Server struct {
 
 	Deployments []*Deployment `json:"deployments"`
 
-	WorkspaceSnapshot *terraform.WorkspaceSnapshot `json:"-"`
+	WorkspaceSnapshot *terraform.WorkspaceSnapshot `json:"-" gorm:"embedded;embedded_prefix:terraform_"`
 
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	CompletedAt *time.Time `json:"completed_at,omitempty"`
+	DeletedAt   *time.Time `json:"-"`
 }
 
 // NewServer allows you to construct a provision server in a single line.
@@ -126,6 +137,15 @@ func NewServer(name string, provider ProviderType, sshKey *SSHKey) *Server {
 	}
 }
 
+// AfterFind GORM Hook.
+func (srv *Server) AfterFind() error {
+	if srv.WorkspaceSnapshot != nil && srv.WorkspaceSnapshot.WorkspacePath == "" {
+		srv.WorkspaceSnapshot = nil
+	}
+
+	return nil
+}
+
 // AddDeployment associates a deployment with a server it is deployed on.
 func (srv *Server) AddDeployment(deployment *Deployment) {
 	deployment.ServerID = srv.ID
@@ -137,11 +157,17 @@ type ServerRepository interface {
 	// Find a Server given a ServerID.
 	Find(ctx context.Context, id ServerID) (*Server, error)
 
+	// List all servers.
+	List(ctx context.Context) ([]*Server, error)
+
 	// Create a new Server.
 	Create(ctx context.Context, server *Server) error
 
 	// Update an existing Server.
 	Update(ctx context.Context, server *Server) error
+
+	// Delete an existing Server
+	Delete(ctx context.Context, server *Server) error
 }
 
 // InMemoryServerRepository holds the servers inside an in-memory map.
@@ -166,6 +192,19 @@ func (repo *InMemoryServerRepository) Find(ctx context.Context, id ServerID) (*S
 	return req.(*Server), nil
 }
 
+// List all servers.
+func (repo *InMemoryServerRepository) List(ctx context.Context) ([]*Server, error) {
+	var servers []*Server
+
+	repo.servers.Range(func(key, v interface{}) bool {
+		servers = append(servers, v.(*Server))
+
+		return true
+	})
+
+	return servers, nil
+}
+
 // Create a new Server.
 func (repo *InMemoryServerRepository) Create(ctx context.Context, server *Server) error {
 	_, loaded := repo.servers.LoadOrStore(server.ID, server)
@@ -179,6 +218,13 @@ func (repo *InMemoryServerRepository) Create(ctx context.Context, server *Server
 // Update an existing Server.
 func (repo *InMemoryServerRepository) Update(ctx context.Context, server *Server) error {
 	repo.servers.Store(server.ID, server)
+
+	return nil
+}
+
+// Delete an existing Server
+func (repo *InMemoryServerRepository) Delete(ctx context.Context, srv *Server) error {
+	repo.servers.Delete(srv.ID)
 
 	return nil
 }
