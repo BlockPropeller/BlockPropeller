@@ -171,7 +171,7 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 		return errors.Wrap(err, "take workspace snapshot")
 	}
 
-	job.WorkspaceSnapshot = snap
+	server.WorkspaceSnapshot = snap
 	job.SetState(StateServerCreated)
 
 	err = step.srvRepo.Update(ctx, server)

@@ -7,7 +7,6 @@ import (
 
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
-	"chainup.dev/chainup/terraform"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
@@ -52,8 +51,6 @@ type Job struct {
 
 	DeploymentID infrastructure.DeploymentID `json:"-" sql:"type:varchar(255) REFERENCES deployments(id)"`
 	Deployment   *infrastructure.Deployment  `json:"deployment"`
-
-	WorkspaceSnapshot *terraform.WorkspaceSnapshot
 
 	CreatedAt  time.Time  `json:"created_at"`
 	UpdatedAt  time.Time  `json:"updated_at"`

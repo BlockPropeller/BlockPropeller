@@ -36,11 +36,12 @@ func (p *Provisioner) Provision(ctx context.Context, jobID JobID) error {
 
 // Undo provisioned infrastructure based on the terraform Workspace.
 func (p *Provisioner) Undo(ctx context.Context, job *Job) error {
-	if job.WorkspaceSnapshot == nil {
+	srv := job.Server
+	if srv == nil || srv.WorkspaceSnapshot == nil {
 		return errors.New("missing workspace snapshot")
 	}
 
-	workspace, err := terraform.RestoreWorkspace(job.WorkspaceSnapshot)
+	workspace, err := terraform.RestoreWorkspace(srv.WorkspaceSnapshot)
 	if err != nil {
 		return errors.Wrap(err, "restore workspace")
 	}

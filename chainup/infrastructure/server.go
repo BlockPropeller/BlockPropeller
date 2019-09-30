@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"chainup.dev/chainup/terraform"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -100,6 +101,8 @@ type Server struct {
 	IPAddress net.IP `json:"ip_address" gorm:"type:varchar(255)"`
 
 	Deployments []*Deployment `json:"deployments"`
+
+	WorkspaceSnapshot *terraform.WorkspaceSnapshot `json:"-"`
 
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`

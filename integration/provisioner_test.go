@@ -42,7 +42,7 @@ func TestProvisioningJob(t *testing.T) {
 
 	err = app.Provisioner.Provision(context.TODO(), job.ID)
 	defer func() {
-		if job.WorkspaceSnapshot == nil {
+		if job.Server == nil || job.Server.WorkspaceSnapshot == nil {
 			return
 		}
 
