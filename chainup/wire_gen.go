@@ -11,6 +11,7 @@ import (
 	"chainup.dev/chainup/database/transaction"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/statemachine/middleware"
 	"chainup.dev/chainup/terraform"
 	"chainup.dev/lib/log"
 	"testing"
@@ -34,11 +35,12 @@ func SetupDatabaseApp() (*App, func(), error) {
 	jobScheduler := provision.NewJobScheduler(db, jobRepository, serverRepository, deploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
-	terraformStep := provision.NewTerraformStep(terraformTerraform)
+	terraformStep := provision.NewTerraformStep(terraformTerraform, serverRepository, jobRepository)
 	ansibleConfig := config.Ansible
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
-	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
+	ansibleStep := provision.NewAnsibleStep(ansibleAnsible, deploymentRepository, jobRepository)
+	transactional := middleware.NewTransactional(db)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep, transactional)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
 	consoleLogger := log.NewConsoleLogger(logConfig)
 	app := NewApp(config, providerSettingsRepository, jobScheduler, provisioner, consoleLogger)
@@ -60,11 +62,12 @@ func SetupInMemoryApp() *App {
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
-	terraformStep := provision.NewTerraformStep(terraformTerraform)
+	terraformStep := provision.NewTerraformStep(terraformTerraform, inMemoryServerRepository, inMemoryJobRepository)
 	ansibleConfig := config.Ansible
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
-	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
+	ansibleStep := provision.NewAnsibleStep(ansibleAnsible, inMemoryDeploymentRepository, inMemoryJobRepository)
+	transactional := middleware.NewTransactional(inMemoryTxContext)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep, transactional)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
@@ -85,11 +88,12 @@ func SetupTestApp(t *testing.T) *App {
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
-	terraformStep := provision.NewTerraformStep(terraformTerraform)
+	terraformStep := provision.NewTerraformStep(terraformTerraform, inMemoryServerRepository, inMemoryJobRepository)
 	ansibleConfig := config.Ansible
 	ansibleAnsible := ansible.ConfigureAnsible(ansibleConfig)
-	ansibleStep := provision.NewAnsibleStep(ansibleAnsible)
-	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep)
+	ansibleStep := provision.NewAnsibleStep(ansibleAnsible, inMemoryDeploymentRepository, inMemoryJobRepository)
+	transactional := middleware.NewTransactional(inMemoryTxContext)
+	jobStateMachine := provision.ConfigureJobStateMachine(terraformStep, ansibleStep, transactional)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform)
 	testingLogger := log.NewTestingLogger(t)
 	app := NewApp(config, inMemoryProviderSettingsRepository, jobScheduler, provisioner, testingLogger)

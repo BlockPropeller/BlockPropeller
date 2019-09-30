@@ -1,4 +1,4 @@
-package provision
+package middleware
 
 import (
 	"github.com/google/wire"
@@ -7,10 +7,5 @@ import (
 // Set is the Wire provider set for the provisioning package
 // that does not depend on any underlying dependencies.
 var Set = wire.NewSet(
-	NewTerraformStep,
-	NewAnsibleStep,
-	ConfigureJobStateMachine,
-
-	NewJobScheduler,
-	NewProvisioner,
+	NewTransactional,
 )

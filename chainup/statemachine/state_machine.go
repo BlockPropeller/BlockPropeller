@@ -179,6 +179,7 @@ func (fn StepFn) Step(ctx context.Context, res StatefulResource) error {
 // MachineBuilder is a structure used for constructing an instance of the StateMachine.
 type MachineBuilder struct {
 	steps       map[string]Step
+	middleware  MiddlewareStack
 	validStates []State
 }
 
@@ -210,6 +211,27 @@ func (b *MachineBuilder) Step(state State, step Step) *MachineBuilder {
 	return b
 }
 
+// MiddlewareFn extends the middleware stack with an additional MiddlewareFn.
+func (b *MachineBuilder) MiddlewareFn(fn MiddlewareFn) *MachineBuilder {
+	b.middleware = b.middleware.Extend(fn)
+
+	return b
+}
+
+// Middleware extends the middleware stack with an additional Middleware.
+func (b *MachineBuilder) Middleware(middleware Middleware) *MachineBuilder {
+	b.middleware = b.middleware.Extend(middleware)
+
+	return b
+}
+
+// MiddlewareStack replaces the existing Middleware stack with a new one.
+func (b *MachineBuilder) MiddlewareStack(stack MiddlewareStack) *MachineBuilder {
+	b.middleware = stack
+
+	return b
+}
+
 // Build constructs the final StateMachine from builder configuration.
 func (b *MachineBuilder) Build() *StateMachine {
 	return &StateMachine{
@@ -222,7 +244,8 @@ func (b *MachineBuilder) Build() *StateMachine {
 //
 // StateMachine has various rules for executing steps, promoting safe usage.
 type StateMachine struct {
-	steps map[string]Step
+	steps      map[string]Step
+	middleware MiddlewareStack
 }
 
 // Step advances the StateMachine for a single step.
@@ -238,7 +261,9 @@ func (sm *StateMachine) Step(ctx context.Context, res StatefulResource) error {
 		return ErrInvalidStep
 	}
 
-	err := step.Step(ctx, res)
+	stepWithMiddleware := sm.middleware.Do(step)
+
+	err := stepWithMiddleware.Step(ctx, res)
 	if err != nil {
 		return err
 	}

@@ -2,8 +2,8 @@ package chainup
 
 import (
 	"chainup.dev/chainup/ansible"
-	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
+	"chainup.dev/chainup/statemachine/middleware"
 	"chainup.dev/chainup/terraform"
 	"chainup.dev/lib/config"
 	"github.com/google/wire"
@@ -14,8 +14,8 @@ import (
 var AppSet = wire.NewSet(
 	terraform.Set,
 	ansible.Set,
-	infrastructure.Set,
 	provision.Set,
+	middleware.Set,
 
 	ProvideConfig,
 	wire.FieldsOf(new(*Config), "Log", "Database", "Terraform", "Ansible"),

@@ -57,8 +57,8 @@ func TestProvisioningJob(t *testing.T) {
 	//test.CheckErr(t, "find requested server", err)
 	srv := job.Server
 
-	test.AssertBoolEqual(t, "sever provisioning state",
-		srv.State.IsSuccessful, true)
+	test.AssertStringsEqual(t, "sever provisioning state",
+		srv.State.String(), infrastructure.ServerStateRunning.String())
 	test.AssertStringsEqual(t, "server provider",
 		srv.Provider.String(), infrastructure.ProviderDigitalOcean.String())
 

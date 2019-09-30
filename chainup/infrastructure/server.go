@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"chainup.dev/chainup/statemachine"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -90,7 +89,7 @@ func (b *ServerBuilder) Build() (*Server, error) {
 type Server struct {
 	ID ServerID `json:"id"`
 
-	statemachine.Resource `gorm:"embedded"`
+	State ServerState `json:"state" gorm:"type:varchar(20)"`
 
 	Name string `json:"name"`
 
@@ -112,9 +111,9 @@ type Server struct {
 // If you need a fluent interface for constructing the Server, you can use the ServerBuilder.
 func NewServer(name string, provider ProviderType, sshKey *SSHKey) *Server {
 	return &Server{
-		Resource: statemachine.NewResource(StateRequested),
+		ID:    NewServerID(),
+		State: ServerStateRequested,
 
-		ID:       NewServerID(),
 		Name:     name,
 		Provider: provider,
 		SSHKey:   sshKey,

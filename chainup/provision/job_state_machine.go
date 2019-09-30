@@ -8,6 +8,7 @@ import (
 	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
+	"chainup.dev/chainup/statemachine/middleware"
 	"chainup.dev/chainup/terraform"
 	"chainup.dev/chainup/terraform/resource"
 	"chainup.dev/chainup/terraform/resource/digitalocean"
@@ -40,9 +41,14 @@ type JobStateMachine struct {
 
 // ConfigureJobStateMachine returns a preconfigured StateMachine
 // for running provisioning jobs.
-func ConfigureJobStateMachine(tfStep *TerraformStep, ansibleStep *AnsibleStep) *JobStateMachine {
+func ConfigureJobStateMachine(
+	tfStep *TerraformStep,
+	ansibleStep *AnsibleStep,
+	txMiddleware *middleware.Transactional,
+) *JobStateMachine {
 	return &JobStateMachine{
 		StateMachine: statemachine.Builder(ValidStates).
+			Middleware(txMiddleware).
 			Step(StateCreated, tfStep).
 			Step(StateServerCreated, ansibleStep).
 			Build(),
@@ -54,11 +60,14 @@ func ConfigureJobStateMachine(tfStep *TerraformStep, ansibleStep *AnsibleStep) *
 // provisioning to finish.
 type TerraformStep struct {
 	tf *terraform.Terraform
+
+	srvRepo infrastructure.ServerRepository
+	jobRepo JobRepository
 }
 
 // NewTerraformStep returns a new TerraformStep instance.
-func NewTerraformStep(tf *terraform.Terraform) *TerraformStep {
-	return &TerraformStep{tf: tf}
+func NewTerraformStep(tf *terraform.Terraform, srvRepo infrastructure.ServerRepository, jobRepo JobRepository) *TerraformStep {
+	return &TerraformStep{tf: tf, srvRepo: srvRepo, jobRepo: jobRepo}
 }
 
 // Step satisfies the State Machine step interface.
@@ -155,7 +164,7 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 	})
 
 	server.IPAddress = ip
-	server.State = infrastructure.StateReady
+	server.State = infrastructure.ServerStateRunning
 
 	snap, err := workspace.Snapshot()
 	if err != nil {
@@ -165,6 +174,16 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 	job.WorkspaceSnapshot = snap
 	job.SetState(StateServerCreated)
 
+	err = step.srvRepo.Update(ctx, server)
+	if err != nil {
+		return errors.Wrap(err, "update server")
+	}
+
+	err = step.jobRepo.Update(ctx, job)
+	if err != nil {
+		return errors.Wrap(err, "update job")
+	}
+
 	return nil
 }
 
@@ -172,13 +191,14 @@ func (step *TerraformStep) Step(ctx context.Context, res statemachine.StatefulRe
 // and runs an Ansible playbook for provisioning deployments on top of it.
 type AnsibleStep struct {
 	ans *ansible.Ansible
+
+	deploymentRepo infrastructure.DeploymentRepository
+	jobRepo        JobRepository
 }
 
 // NewAnsibleStep returns a new AnsibleStep instance.
-func NewAnsibleStep(ans *ansible.Ansible) *AnsibleStep {
-	return &AnsibleStep{
-		ans: ans,
-	}
+func NewAnsibleStep(ans *ansible.Ansible, deploymentRepo infrastructure.DeploymentRepository, jobRepo JobRepository) *AnsibleStep {
+	return &AnsibleStep{ans: ans, deploymentRepo: deploymentRepo, jobRepo: jobRepo}
 }
 
 // Step satisfies the Step interface.
@@ -219,9 +239,18 @@ func (step *AnsibleStep) Step(ctx context.Context, res statemachine.StatefulReso
 	}
 
 	deployment.State = infrastructure.DeploymentStateRunning
-	srv.AddDeployment(deployment)
 
 	job.SetState(StateCompleted)
+
+	err = step.deploymentRepo.Update(ctx, deployment)
+	if err != nil {
+		return errors.Wrap(err, "update deployment")
+	}
+
+	err = step.jobRepo.Update(ctx, job)
+	if err != nil {
+		return errors.Wrap(err, "update job")
+	}
 
 	return nil
 }
