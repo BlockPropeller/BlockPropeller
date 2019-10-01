@@ -1,6 +1,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/database"
 	"chainup.dev/chainup/terraform"
@@ -12,7 +13,8 @@ import (
 type Config struct {
 	Log *log.Config `yaml:"log"`
 
-	Database *database.Config `yaml:"database"`
+	Database *database.Config   `yaml:"database"`
+	JWT      *account.JWTConfig `yaml:"jwt"`
 
 	DigitalOcean *DigitalOceanConfig `yaml:"digital_ocean"`
 

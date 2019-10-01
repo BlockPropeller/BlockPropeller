@@ -1,6 +1,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/lib/log"
@@ -12,6 +13,9 @@ import (
 // App can be used to run ChainUP tasks through API, CLI, test cases or similar entry points.
 type App struct {
 	Config *Config
+
+	AccountRepository account.Repository
+	AccountService    *account.Service
 
 	ProviderSettingsRepository infrastructure.ProviderSettingsRepository
 	ServerRepository           infrastructure.ServerRepository
@@ -26,6 +30,8 @@ type App struct {
 // NewApp returns a new App instance.
 func NewApp(
 	config *Config,
+	accRepo account.Repository,
+	accSvc *account.Service,
 	providerSettingsRepo infrastructure.ProviderSettingsRepository,
 	serverRepo infrastructure.ServerRepository,
 	jobRepo provision.JobRepository,
@@ -37,6 +43,8 @@ func NewApp(
 
 	return &App{
 		Config:                     config,
+		AccountRepository:          accRepo,
+		AccountService:             accSvc,
 		ProviderSettingsRepository: providerSettingsRepo,
 		ServerRepository:           serverRepo,
 		JobRepository:              jobRepo,

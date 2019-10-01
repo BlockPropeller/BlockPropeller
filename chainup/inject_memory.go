@@ -3,6 +3,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/database/transaction"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
@@ -20,6 +21,9 @@ func SetupInMemoryApp() *App {
 
 		transaction.NewInMemoryTransactionContext,
 		wire.Bind(new(transaction.TxContext), new(*transaction.InMemoryTxContext)),
+
+		account.NewInMemoryRepository,
+		wire.Bind(new(account.Repository), new(*account.InMemoryRepository)),
 
 		provision.NewInMemoryJobRepository,
 		wire.Bind(new(provision.JobRepository), new(*provision.InMemoryJobRepository)),

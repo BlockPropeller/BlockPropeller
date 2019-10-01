@@ -6,6 +6,9 @@ env: development
 database:
   dialect: sqlite3
 
+jwt:
+  secret: SuperSecret
+
 digital_ocean:
   access_token: ''
 

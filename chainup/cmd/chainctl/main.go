@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"chainup.dev/chainup"
+	"chainup.dev/chainup/cmd/chainctl/account"
 	"chainup.dev/chainup/cmd/chainctl/job"
 	"chainup.dev/chainup/cmd/chainctl/server"
 	"github.com/urfave/cli"
@@ -16,6 +17,7 @@ func AppCmd(app *chainup.App) *cli.App {
 	cmd.Name = "chainctl"
 	cmd.Usage = "ChainCTL is a command line utility created to ease the development of ChainUP."
 	cmd.Commands = []cli.Command{
+		account.Cmd(app),
 		job.Cmd(app),
 		server.Cmd(app),
 	}

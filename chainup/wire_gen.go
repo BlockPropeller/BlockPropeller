@@ -6,6 +6,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/database"
 	"chainup.dev/chainup/database/transaction"
@@ -28,6 +29,10 @@ func SetupDatabaseApp() (*App, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	accountRepository := database.NewAccountRepository(db)
+	jwtConfig := config.JWT
+	tokenService := account.ConfigureTokenService(jwtConfig)
+	service := account.NewService(accountRepository, tokenService)
 	providerSettingsRepository := database.NewProviderSettingsRepository(db)
 	serverRepository := database.NewServerRepository(db)
 	jobRepository := database.NewJobRepository(db)
@@ -46,7 +51,7 @@ func SetupDatabaseApp() (*App, func(), error) {
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, db, serverRepository, deploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, providerSettingsRepository, serverRepository, jobRepository, jobScheduler, provisioner, consoleLogger)
+	app := NewApp(config, accountRepository, service, providerSettingsRepository, serverRepository, jobRepository, jobScheduler, provisioner, consoleLogger)
 	return app, func() {
 		cleanup()
 	}, nil
@@ -57,6 +62,10 @@ func SetupDatabaseApp() (*App, func(), error) {
 func SetupInMemoryApp() *App {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
+	inMemoryRepository := account.NewInMemoryRepository()
+	jwtConfig := config.JWT
+	tokenService := account.ConfigureTokenService(jwtConfig)
+	service := account.NewService(inMemoryRepository, tokenService)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
@@ -77,7 +86,7 @@ func SetupInMemoryApp() *App {
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, consoleLogger)
+	app := NewApp(config, inMemoryRepository, service, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, consoleLogger)
 	return app
 }
 
@@ -86,6 +95,10 @@ func SetupInMemoryApp() *App {
 func SetupTestApp(t *testing.T) *App {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
+	inMemoryRepository := account.NewInMemoryRepository()
+	jwtConfig := config.JWT
+	tokenService := account.ConfigureTokenService(jwtConfig)
+	service := account.NewService(inMemoryRepository, tokenService)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
@@ -105,6 +118,6 @@ func SetupTestApp(t *testing.T) *App {
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	testingLogger := log.NewTestingLogger(t)
-	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, testingLogger)
+	app := NewApp(config, inMemoryRepository, service, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, testingLogger)
 	return app
 }

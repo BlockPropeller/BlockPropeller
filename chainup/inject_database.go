@@ -3,6 +3,7 @@
 package chainup
 
 import (
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/database"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
@@ -19,6 +20,9 @@ func SetupDatabaseApp() (*App, func(), error) {
 		wire.Bind(new(log.Logger), new(*log.ConsoleLogger)),
 
 		database.Set,
+
+		database.NewAccountRepository,
+		wire.Bind(new(account.Repository), new(*database.AccountRepository)),
 
 		database.NewJobRepository,
 		wire.Bind(new(provision.JobRepository), new(*database.JobRepository)),

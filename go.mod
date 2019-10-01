@@ -4,7 +4,9 @@ go 1.13
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
+	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/wire v0.3.0
 	github.com/jinzhu/gorm v1.9.10
 	github.com/joonix/log v0.0.0-20190524090622-13fe31bbdd7a
