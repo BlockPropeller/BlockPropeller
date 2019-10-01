@@ -134,6 +134,9 @@ type JobRepository interface {
 	// Find a Job given a JobID.
 	Find(ctx context.Context, id JobID) (*Job, error)
 
+	// List all jobs.
+	List(ctx context.Context) ([]*Job, error)
+
 	// Create a new Job.
 	Create(ctx context.Context, job *Job) error
 
@@ -161,6 +164,19 @@ func (repo *InMemoryJobRepository) Find(ctx context.Context, id JobID) (*Job, er
 	}
 
 	return req.(*Job), nil
+}
+
+// List all jobs.
+func (repo *InMemoryJobRepository) List(ctx context.Context) ([]*Job, error) {
+	var servers []*Job
+
+	repo.jobs.Range(func(key, v interface{}) bool {
+		servers = append(servers, v.(*Job))
+
+		return true
+	})
+
+	return servers, nil
 }
 
 // Create a new Job.

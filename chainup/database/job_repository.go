@@ -32,6 +32,17 @@ func (repo *JobRepository) Find(ctx context.Context, id provision.JobID) (*provi
 	return &job, nil
 }
 
+// List all jobs.
+func (repo *JobRepository) List(ctx context.Context) ([]*provision.Job, error) {
+	var jobs []*provision.Job
+	err := repo.db.Model(ctx, &jobs).Find(&jobs).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "find jobs")
+	}
+
+	return jobs, nil
+}
+
 // Create a new Job.
 func (repo *JobRepository) Create(ctx context.Context, job *provision.Job) error {
 	err := repo.db.Model(ctx, job).Create(job).Error

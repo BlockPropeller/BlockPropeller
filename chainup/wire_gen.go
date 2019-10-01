@@ -46,7 +46,7 @@ func SetupDatabaseApp() (*App, func(), error) {
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, db, serverRepository, deploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, providerSettingsRepository, serverRepository, jobScheduler, provisioner, consoleLogger)
+	app := NewApp(config, providerSettingsRepository, serverRepository, jobRepository, jobScheduler, provisioner, consoleLogger)
 	return app, func() {
 		cleanup()
 	}, nil
@@ -59,8 +59,8 @@ func SetupInMemoryApp() *App {
 	config := ProvideConfig(provider)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
-	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
@@ -77,7 +77,7 @@ func SetupInMemoryApp() *App {
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
-	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, jobScheduler, provisioner, consoleLogger)
+	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, consoleLogger)
 	return app
 }
 
@@ -88,8 +88,8 @@ func SetupTestApp(t *testing.T) *App {
 	config := ProvideConfig(provider)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
-	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	terraformConfig := config.Terraform
@@ -105,6 +105,6 @@ func SetupTestApp(t *testing.T) *App {
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	testingLogger := log.NewTestingLogger(t)
-	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, jobScheduler, provisioner, testingLogger)
+	app := NewApp(config, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, testingLogger)
 	return app
 }

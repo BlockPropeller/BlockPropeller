@@ -11,6 +11,7 @@ func Cmd(app *chainup.App) cli.Command {
 		Name:  "job",
 		Usage: "Job related commands",
 		Subcommands: []cli.Command{
+			listCmd(app),
 			runCmd(app),
 		},
 	}
