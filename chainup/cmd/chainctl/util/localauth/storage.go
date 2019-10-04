@@ -1,4 +1,4 @@
-package auth
+package localauth
 
 import (
 	"io/ioutil"
@@ -10,10 +10,12 @@ import (
 )
 
 var (
-	errTokenNotFound = errors.New("token not found")
+	// ErrTokenNotFound is an error returned when a token is not found locally.
+	ErrTokenNotFound = errors.New("token not found")
 )
 
-func getToken() (account.Token, error) {
+// GetToken returns an account token stored locally if it exists.
+func GetToken() (account.Token, error) {
 	tokenFile, err := getTokenFile()
 	if err != nil {
 		return account.NilToken, errors.Wrap(err, "get token file")
@@ -21,7 +23,7 @@ func getToken() (account.Token, error) {
 
 	_, err = os.Stat(tokenFile)
 	if os.IsNotExist(err) {
-		return account.NilToken, errTokenNotFound
+		return account.NilToken, ErrTokenNotFound
 	}
 	if err != nil {
 		return account.NilToken, errors.Wrap(err, "stat token file")
@@ -35,7 +37,8 @@ func getToken() (account.Token, error) {
 	return account.NewToken(string(data)), nil
 }
 
-func setToken(token account.Token) error {
+// SetToken sets the provided Token to local storage for future authentication.
+func SetToken(token account.Token) error {
 	tokenFile, err := getTokenFile()
 	if err != nil {
 		return errors.Wrap(err, "get token file")
@@ -49,7 +52,8 @@ func setToken(token account.Token) error {
 	return nil
 }
 
-func deleteToken() error {
+// DeleteToken removes the Token from local storage if it exists.
+func DeleteToken() error {
 	tokenFile, err := getTokenFile()
 	if err != nil {
 		return errors.Wrap(err, "get token file")
@@ -57,7 +61,7 @@ func deleteToken() error {
 
 	_, err = os.Stat(tokenFile)
 	if os.IsNotExist(err) {
-		return errTokenNotFound
+		return ErrTokenNotFound
 	}
 	if err != nil {
 		return errors.Wrap(err, "stat token file")

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/statemachine"
 	"github.com/pkg/errors"
@@ -39,7 +40,8 @@ func (id JobID) String() string {
 // Once complete, a Job serves only for record keeping, and is not concerned with any other
 // actions on the created entities.
 type Job struct {
-	ID JobID `json:"id"`
+	ID        JobID      `json:"id"`
+	AccountID account.ID `json:"-" sql:"type:varchar(255) NOT NULL REFERENCES accounts(id)"`
 
 	statemachine.Resource `gorm:"embedded"`
 
@@ -58,9 +60,15 @@ type Job struct {
 }
 
 // NewJob returns a new Job instance.
-func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Server, deployment *infrastructure.Deployment) *Job {
+func NewJob(
+	accountID account.ID,
+	provider *infrastructure.ProviderSettings,
+	server *infrastructure.Server,
+	deployment *infrastructure.Deployment,
+) *Job {
 	return &Job{
-		ID: NewJobID(),
+		ID:        NewJobID(),
+		AccountID: accountID,
 
 		Resource: statemachine.NewResource(StateCreated),
 
@@ -80,6 +88,7 @@ func NewJob(provider *infrastructure.ProviderSettings, server *infrastructure.Se
 
 // JobBuilder allows for fluent job definition.
 type JobBuilder struct {
+	accountID     account.ID
 	provider      *infrastructure.ProviderSettings
 	server        *infrastructure.Server
 	serverBuilder *infrastructure.ServerBuilder
@@ -87,8 +96,10 @@ type JobBuilder struct {
 }
 
 // NewJobBuilder returns a new JobBuilder instance.
-func NewJobBuilder() *JobBuilder {
-	return &JobBuilder{}
+func NewJobBuilder(accountID account.ID) *JobBuilder {
+	return &JobBuilder{
+		accountID: accountID,
+	}
 }
 
 // Server specification that should be provisioned
@@ -126,7 +137,7 @@ func (b *JobBuilder) Build() (*Job, error) {
 
 	b.server.AddDeployment(b.deployment)
 
-	return NewJob(b.provider, b.server, b.deployment), nil
+	return NewJob(b.accountID, b.provider, b.server, b.deployment), nil
 }
 
 // JobRepository defines an interface for storing and retrieving provisioning jobs.
@@ -135,7 +146,7 @@ type JobRepository interface {
 	Find(ctx context.Context, id JobID) (*Job, error)
 
 	// List all jobs.
-	List(ctx context.Context) ([]*Job, error)
+	List(ctx context.Context, accountID account.ID) ([]*Job, error)
 
 	// Create a new Job.
 	Create(ctx context.Context, job *Job) error
@@ -167,16 +178,21 @@ func (repo *InMemoryJobRepository) Find(ctx context.Context, id JobID) (*Job, er
 }
 
 // List all jobs.
-func (repo *InMemoryJobRepository) List(ctx context.Context) ([]*Job, error) {
-	var servers []*Job
+func (repo *InMemoryJobRepository) List(ctx context.Context, accountID account.ID) ([]*Job, error) {
+	var jobs []*Job
 
 	repo.jobs.Range(func(key, v interface{}) bool {
-		servers = append(servers, v.(*Job))
+		job := v.(*Job)
+		if job.AccountID != accountID {
+			return true
+		}
+
+		jobs = append(jobs, job)
 
 		return true
 	})
 
-	return servers, nil
+	return jobs, nil
 }
 
 // Create a new Job.

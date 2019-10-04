@@ -20,9 +20,11 @@ func migrate(db *gorm.DB) error {
 		return err
 	}
 
-	err = db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS account_email_idx ON accounts (email)").Error
+	err = db.Exec(`
+CREATE UNIQUE INDEX IF NOT EXISTS account_email_idx ON accounts (email)
+`).Error
 	if err != nil {
-		return errors.Wrap(err, "account_email_idx")
+		return errors.Wrap(err, "create indexes")
 	}
 
 	return nil

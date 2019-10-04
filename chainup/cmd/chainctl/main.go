@@ -7,6 +7,8 @@ import (
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/cmd/chainctl/admin"
 	"chainup.dev/chainup/cmd/chainctl/auth"
+	"chainup.dev/chainup/cmd/chainctl/util/localauth"
+	"chainup.dev/lib/log"
 	"github.com/urfave/cli"
 )
 
@@ -15,6 +17,10 @@ func AppCmd(app *chainup.App) *cli.App {
 	cmd := cli.NewApp()
 	cmd.Name = "chainctl"
 	cmd.Usage = "ChainCTL is a command line utility created to ease the development of ChainUP."
+	cmd.Before = func(*cli.Context) error {
+		localauth.Authenticate(app)
+		return nil
+	}
 	cmd.Commands = []cli.Command{
 		auth.Cmd(app),
 		admin.Cmd(app),
@@ -35,7 +41,7 @@ func main() {
 
 	err = cmd.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		log.ErrorErr(err, "Failed running command")
 		os.Exit(1)
 	}
 }

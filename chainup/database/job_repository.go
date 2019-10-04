@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/provision"
 	"github.com/pkg/errors"
 )
@@ -33,9 +34,11 @@ func (repo *JobRepository) Find(ctx context.Context, id provision.JobID) (*provi
 }
 
 // List all jobs.
-func (repo *JobRepository) List(ctx context.Context) ([]*provision.Job, error) {
+func (repo *JobRepository) List(ctx context.Context, accountID account.ID) ([]*provision.Job, error) {
 	var jobs []*provision.Job
-	err := repo.db.Model(ctx, &jobs).Find(&jobs).Error
+	err := repo.db.Model(ctx, &jobs).
+		Where("account_id = ?", accountID).
+		Find(&jobs).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "find jobs")
 	}

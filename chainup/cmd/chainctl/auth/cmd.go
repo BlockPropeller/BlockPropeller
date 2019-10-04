@@ -11,6 +11,7 @@ func Cmd(app *chainup.App) cli.Command {
 		Name:  "auth",
 		Usage: "Authentication commands",
 		Subcommands: []cli.Command{
+			registerCmd(app),
 			loginCmd(app),
 			whoamiCmd(app),
 			logoutCmd(),

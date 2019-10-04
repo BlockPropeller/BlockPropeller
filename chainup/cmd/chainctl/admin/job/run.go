@@ -5,6 +5,7 @@ import (
 
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/binance"
+	"chainup.dev/chainup/cmd/chainctl/util/localauth"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/lib/log"
@@ -41,6 +42,8 @@ func runCmd(app *chainup.App) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
+			acc := localauth.Account
+
 			network := binance.NewNetwork(c.String("network"))
 			if !network.IsValid() {
 				log.Error("Invalid network flag.", log.Fields{
@@ -80,18 +83,18 @@ func runCmd(app *chainup.App) cli.Command {
 				"provider_type": providerType.String(),
 			})
 
-			provider := infrastructure.NewProviderSettings(providerType, providerKey)
+			provider := infrastructure.NewProviderSettings(acc.ID, providerType, providerKey)
 			err := app.ProviderSettingsRepository.Create(context.TODO(), provider)
 			if err != nil {
 				log.ErrorErr(err, "Failed saving provider settings.")
 				return
 			}
 
-			srv, err := infrastructure.NewServerBuilder().
+			srv, err := infrastructure.NewServerBuilder(acc.ID).
 				Provider(provider.Type).
 				Build()
 
-			job, err := provision.NewJobBuilder().
+			job, err := provision.NewJobBuilder(acc.ID).
 				Provider(provider).
 				Server(srv).
 				Deployment(binance.NewNodeDeployment(

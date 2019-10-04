@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"chainup.dev/chainup"
+	"chainup.dev/chainup/cmd/chainctl/util/localauth"
 	"chainup.dev/lib/log"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
@@ -15,7 +16,9 @@ func listCmd(app *chainup.App) cli.Command {
 		Name:  "list",
 		Usage: "List all servers",
 		Action: func(c *cli.Context) {
-			servers, err := app.ServerRepository.List(context.Background())
+			acc := localauth.Account
+
+			servers, err := app.ServerRepository.List(context.Background(), acc.ID)
 			if err != nil {
 				log.ErrorErr(err, "failed listing servers")
 				return

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"chainup.dev/chainup/account"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
@@ -33,7 +34,8 @@ func (id ProviderSettingsID) String() string {
 // has setup for his account. Only providers with valid settings can be used
 // to provision new infrastructure.
 type ProviderSettings struct {
-	ID ProviderSettingsID `json:"id"`
+	ID        ProviderSettingsID `json:"id"`
+	AccountID account.ID         `json:"-" sql:"type:varchar(255) NOT NULL REFERENCES accounts(id)" `
 
 	Type ProviderType `json:"type"`
 
@@ -44,9 +46,11 @@ type ProviderSettings struct {
 }
 
 // NewProviderSettings returns a new ProviderSettings instance.
-func NewProviderSettings(providerType ProviderType, credentials string) *ProviderSettings {
+func NewProviderSettings(accountID account.ID, providerType ProviderType, credentials string) *ProviderSettings {
 	return &ProviderSettings{
-		ID:          NewProviderSettingsID(),
+		ID:        NewProviderSettingsID(),
+		AccountID: accountID,
+
 		Type:        providerType,
 		Credentials: credentials,
 

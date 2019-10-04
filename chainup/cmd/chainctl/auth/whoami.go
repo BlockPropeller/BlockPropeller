@@ -2,6 +2,7 @@ package auth
 
 import (
 	"chainup.dev/chainup"
+	"chainup.dev/chainup/cmd/chainctl/util/localauth"
 	"chainup.dev/lib/log"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -12,8 +13,8 @@ func whoamiCmd(app *chainup.App) cli.Command {
 		Name:  "whoami",
 		Usage: "Return the currently authenticated account.",
 		Action: func(c *cli.Context) {
-			token, err := getToken()
-			if errors.Cause(err) == errTokenNotFound {
+			token, err := localauth.GetToken()
+			if errors.Cause(err) == localauth.ErrTokenNotFound {
 				log.Info("not logged in")
 				return
 			}

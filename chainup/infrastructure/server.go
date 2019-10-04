@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/terraform"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
@@ -45,14 +46,17 @@ func (id ServerID) String() string {
 // ServerBuilder helps construct provisioning servers by providing
 // a fluent interface for configuring server details.
 type ServerBuilder struct {
-	name     string
-	provider ProviderType
-	sshKey   *SSHKey
+	accountID account.ID
+	name      string
+	provider  ProviderType
+	sshKey    *SSHKey
 }
 
 // NewServerBuilder starts the process of building a server.
-func NewServerBuilder() *ServerBuilder {
-	return &ServerBuilder{}
+func NewServerBuilder(accountID account.ID) *ServerBuilder {
+	return &ServerBuilder{
+		accountID: accountID,
+	}
 }
 
 // Name configures the name used for identify the new server.
@@ -93,12 +97,13 @@ func (b *ServerBuilder) Build() (*Server, error) {
 		b.sshKey = sshKey
 	}
 
-	return NewServer(b.name, b.provider, b.sshKey), nil
+	return NewServer(b.accountID, b.name, b.provider, b.sshKey), nil
 }
 
 // Server holds all the configuration values for a single provisioning server.
 type Server struct {
-	ID ServerID `json:"id"`
+	ID        ServerID   `json:"id"`
+	AccountID account.ID `json:"-" sql:"type:varchar(255) NOT NULL REFERENCES accounts(id)" `
 
 	State ServerState `json:"state" gorm:"type:varchar(20)"`
 
@@ -123,9 +128,11 @@ type Server struct {
 // NewServer allows you to construct a provision server in a single line.
 //
 // If you need a fluent interface for constructing the Server, you can use the ServerBuilder.
-func NewServer(name string, provider ProviderType, sshKey *SSHKey) *Server {
+func NewServer(accountID account.ID, name string, provider ProviderType, sshKey *SSHKey) *Server {
 	return &Server{
-		ID:    NewServerID(),
+		ID:        NewServerID(),
+		AccountID: accountID,
+
 		State: ServerStateRequested,
 
 		Name:     name,
@@ -157,8 +164,8 @@ type ServerRepository interface {
 	// Find a Server given a ServerID.
 	Find(ctx context.Context, id ServerID) (*Server, error)
 
-	// List all servers.
-	List(ctx context.Context) ([]*Server, error)
+	// List all servers for a particular Account.
+	List(ctx context.Context, accountID account.ID) ([]*Server, error)
 
 	// Create a new Server.
 	Create(ctx context.Context, server *Server) error
@@ -192,12 +199,17 @@ func (repo *InMemoryServerRepository) Find(ctx context.Context, id ServerID) (*S
 	return req.(*Server), nil
 }
 
-// List all servers.
-func (repo *InMemoryServerRepository) List(ctx context.Context) ([]*Server, error) {
+// List all servers for a particular Account.
+func (repo *InMemoryServerRepository) List(ctx context.Context, accountID account.ID) ([]*Server, error) {
 	var servers []*Server
 
 	repo.servers.Range(func(key, v interface{}) bool {
-		servers = append(servers, v.(*Server))
+		srv := v.(*Server)
+		if srv.AccountID != accountID {
+			return true
+		}
+
+		servers = append(servers, srv)
 
 		return true
 	})

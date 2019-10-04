@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/infrastructure"
 	"github.com/pkg/errors"
 )
@@ -28,10 +29,12 @@ func (repo *ServerRepository) Find(ctx context.Context, id infrastructure.Server
 	return &server, nil
 }
 
-// List all servers.
-func (repo *ServerRepository) List(ctx context.Context) ([]*infrastructure.Server, error) {
+// List all servers for a particular Account.
+func (repo *ServerRepository) List(ctx context.Context, accountID account.ID) ([]*infrastructure.Server, error) {
 	var servers []*infrastructure.Server
-	err := repo.db.Model(ctx, &servers).Find(&servers).Error
+	err := repo.db.Model(ctx, &servers).
+		Where("account_id = ?", accountID).
+		Find(&servers).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "find servers")
 	}

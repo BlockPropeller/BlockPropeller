@@ -2,10 +2,13 @@ package integration_test
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
 	"chainup.dev/chainup"
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/binance"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
@@ -18,15 +21,17 @@ func TestProvisioningJob(t *testing.T) {
 
 	app := chainup.SetupTestApp(t)
 
-	provider := infrastructure.NewProviderSettings(
-		infrastructure.ProviderDigitalOcean, app.Config.DigitalOcean.AccessToken)
+	acc := createTestAccount(t, app)
 
-	server, err := infrastructure.NewServerBuilder().
+	provider := infrastructure.NewProviderSettings(
+		acc.ID, infrastructure.ProviderDigitalOcean, app.Config.DigitalOcean.AccessToken)
+
+	server, err := infrastructure.NewServerBuilder(acc.ID).
 		Provider(provider.Type).
 		Build()
 	test.CheckErr(t, "build server spec", err)
 
-	job, err := provision.NewJobBuilder().
+	job, err := provision.NewJobBuilder(acc.ID).
 		Provider(provider).
 		Server(server).
 		Deployment(binance.NewNodeDeployment(
@@ -69,4 +74,13 @@ func TestProvisioningJob(t *testing.T) {
 
 	err = infrastructure.CheckHealth(srv, srv.Deployments[0])
 	test.CheckErr(t, "check node health", err)
+}
+
+func createTestAccount(t *testing.T, app *chainup.App) *account.Account {
+	acc := account.NewAccount(account.Email(fmt.Sprintf("test-%d@example.com", rand.Int())), "")
+
+	err := app.AccountRepository.Create(context.Background(), acc)
+	test.CheckErr(t, "create account", err)
+
+	return acc
 }
