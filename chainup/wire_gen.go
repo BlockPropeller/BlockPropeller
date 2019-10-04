@@ -10,11 +10,14 @@ import (
 	"chainup.dev/chainup/ansible"
 	"chainup.dev/chainup/database"
 	"chainup.dev/chainup/database/transaction"
+	"chainup.dev/chainup/httpserver"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/chainup/statemachine/middleware"
 	"chainup.dev/chainup/terraform"
 	"chainup.dev/lib/log"
+	"chainup.dev/lib/server"
+	"github.com/google/wire"
 	"testing"
 )
 
@@ -57,6 +60,21 @@ func SetupDatabaseApp() (*App, func(), error) {
 	}, nil
 }
 
+func SetupDatabaseServer() (*server.Server, func(), error) {
+	provider := ProvideFileConfigProvider()
+	config := ProvideConfig(provider)
+	serverConfig := config.Server
+	router := &httpserver.Router{}
+	logConfig := config.Log
+	consoleLogger := log.NewConsoleLogger(logConfig)
+	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
+	if err != nil {
+		return nil, nil, err
+	}
+	return serverServer, func() {
+	}, nil
+}
+
 // Injectors from inject_memory.go:
 
 func SetupInMemoryApp() *App {
@@ -90,6 +108,21 @@ func SetupInMemoryApp() *App {
 	return app
 }
 
+func SetupInMemoryServer() (*server.Server, func(), error) {
+	provider := ProvideFileConfigProvider()
+	config := ProvideConfig(provider)
+	serverConfig := config.Server
+	router := &httpserver.Router{}
+	logConfig := config.Log
+	consoleLogger := log.NewConsoleLogger(logConfig)
+	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
+	if err != nil {
+		return nil, nil, err
+	}
+	return serverServer, func() {
+	}, nil
+}
+
 // Injectors from inject_testing.go:
 
 func SetupTestApp(t *testing.T) *App {
@@ -121,3 +154,35 @@ func SetupTestApp(t *testing.T) *App {
 	app := NewApp(config, inMemoryRepository, service, inMemoryProviderSettingsRepository, inMemoryServerRepository, inMemoryJobRepository, jobScheduler, provisioner, testingLogger)
 	return app
 }
+
+func SetupTestServer(t *testing.T) (*server.Server, func(), error) {
+	provider := ProvideTestConfigProvider()
+	config := ProvideConfig(provider)
+	serverConfig := config.Server
+	router := &httpserver.Router{}
+	testingLogger := log.NewTestingLogger(t)
+	serverServer, err := server.ProvideServer(serverConfig, router, testingLogger)
+	if err != nil {
+		return nil, nil, err
+	}
+	return serverServer, func() {
+	}, nil
+}
+
+// inject_database.go:
+
+var dbAppSet = wire.NewSet(
+	ProvideFileConfigProvider, log.NewConsoleLogger, wire.Bind(new(log.Logger), new(*log.ConsoleLogger)), database.Set, database.NewAccountRepository, wire.Bind(new(account.Repository), new(*database.AccountRepository)), database.NewJobRepository, wire.Bind(new(provision.JobRepository), new(*database.JobRepository)), database.NewServerRepository, wire.Bind(new(infrastructure.ServerRepository), new(*database.ServerRepository)), database.NewDeploymentRepository, wire.Bind(new(infrastructure.DeploymentRepository), new(*database.DeploymentRepository)), database.NewProviderSettingsRepository, wire.Bind(new(infrastructure.ProviderSettingsRepository), new(*database.ProviderSettingsRepository)), AppSet,
+)
+
+// inject_memory.go:
+
+var inMemAppSet = wire.NewSet(
+	ProvideFileConfigProvider, log.NewConsoleLogger, wire.Bind(new(log.Logger), new(*log.ConsoleLogger)), transaction.NewInMemoryTransactionContext, wire.Bind(new(transaction.TxContext), new(*transaction.InMemoryTxContext)), account.NewInMemoryRepository, wire.Bind(new(account.Repository), new(*account.InMemoryRepository)), provision.NewInMemoryJobRepository, wire.Bind(new(provision.JobRepository), new(*provision.InMemoryJobRepository)), infrastructure.NewInMemoryServerRepository, wire.Bind(new(infrastructure.ServerRepository), new(*infrastructure.InMemoryServerRepository)), infrastructure.NewInMemoryDeploymentRepository, wire.Bind(new(infrastructure.DeploymentRepository), new(*infrastructure.InMemoryDeploymentRepository)), infrastructure.NewInMemoryProviderSettingsRepository, wire.Bind(new(infrastructure.ProviderSettingsRepository), new(*infrastructure.InMemoryProviderSettingsRepository)), AppSet,
+)
+
+// inject_testing.go:
+
+var testAppSet = wire.NewSet(
+	ProvideTestConfigProvider, log.NewTestingLogger, wire.Bind(new(log.Logger), new(*log.TestingLogger)), transaction.NewInMemoryTransactionContext, wire.Bind(new(transaction.TxContext), new(*transaction.InMemoryTxContext)), account.NewInMemoryRepository, wire.Bind(new(account.Repository), new(*account.InMemoryRepository)), provision.NewInMemoryJobRepository, wire.Bind(new(provision.JobRepository), new(*provision.InMemoryJobRepository)), infrastructure.NewInMemoryServerRepository, wire.Bind(new(infrastructure.ServerRepository), new(*infrastructure.InMemoryServerRepository)), infrastructure.NewInMemoryDeploymentRepository, wire.Bind(new(infrastructure.DeploymentRepository), new(*infrastructure.InMemoryDeploymentRepository)), infrastructure.NewInMemoryProviderSettingsRepository, wire.Bind(new(infrastructure.ProviderSettingsRepository), new(*infrastructure.InMemoryProviderSettingsRepository)), AppSet,
+)

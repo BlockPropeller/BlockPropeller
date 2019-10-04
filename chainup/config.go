@@ -6,12 +6,14 @@ import (
 	"chainup.dev/chainup/database"
 	"chainup.dev/chainup/terraform"
 	"chainup.dev/lib/log"
+	"chainup.dev/lib/server"
 	"github.com/pkg/errors"
 )
 
 // Config is the root config structure declaring all possible configuration parameters.
 type Config struct {
-	Log *log.Config `yaml:"log"`
+	Log    *log.Config    `yaml:"log"`
+	Server *server.Config `yaml:"server"`
 
 	Database *database.Config   `yaml:"database"`
 	JWT      *account.JWTConfig `yaml:"jwt"`

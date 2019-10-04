@@ -1,17 +1,14 @@
+env: development
 log:
   level: info
-
-env: development
-
+server:
+  port: 8000
 database:
   dialect: sqlite3
-
 jwt:
   secret: SuperSecret
-
 digital_ocean:
   access_token: ''
-
 ansible:
   playbooks_dir: ''
   keys_dir: ''
