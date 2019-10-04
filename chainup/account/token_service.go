@@ -19,6 +19,11 @@ func NewToken(token string) Token {
 	return Token(token)
 }
 
+// String implements the Stringer interface.
+func (t Token) String() string {
+	return string(t)
+}
+
 // TokenService handles generation and parsing of Tokens.
 type TokenService struct {
 	secret string
