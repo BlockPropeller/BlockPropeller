@@ -40,23 +40,23 @@ func (id JobID) String() string {
 // Once complete, a Job serves only for record keeping, and is not concerned with any other
 // actions on the created entities.
 type Job struct {
-	ID        JobID      `json:"id"`
-	AccountID account.ID `json:"-" sql:"type:varchar(255) NOT NULL REFERENCES accounts(id)"`
+	ID        JobID      `json:"id" gorm:"type:varchar(36) not null"`
+	AccountID account.ID `json:"-" gorm:"type:varchar(36) not null references accounts(id)"`
 
 	statemachine.Resource `gorm:"embedded"`
 
-	ProviderSettingsID infrastructure.ProviderSettingsID `json:"-" sql:"type:varchar(255) REFERENCES provider_settings(id)"`
+	ProviderSettingsID infrastructure.ProviderSettingsID `json:"-" gorm:"type:varchar(255) references provider_settings(id)"`
 	ProviderSettings   *infrastructure.ProviderSettings  `json:"provider_settings"`
 
-	ServerID infrastructure.ServerID `json:"-" sql:"type:varchar(255) REFERENCES servers(id)"`
+	ServerID infrastructure.ServerID `json:"-" gorm:"type:varchar(36) references servers(id)"`
 	Server   *infrastructure.Server  `json:"server"`
 
-	DeploymentID infrastructure.DeploymentID `json:"-" sql:"type:varchar(255) REFERENCES deployments(id)"`
+	DeploymentID infrastructure.DeploymentID `json:"-" gorm:"type:varchar(36) references deployments(id)"`
 	Deployment   *infrastructure.Deployment  `json:"deployment"`
 
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	FinishedAt *time.Time `json:"finished_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt  time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	FinishedAt *time.Time `json:"finished_at,omitempty" gorm:"type:datetime"`
 }
 
 // NewJob returns a new Job instance.

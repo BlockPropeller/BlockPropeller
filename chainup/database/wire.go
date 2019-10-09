@@ -37,13 +37,13 @@ func ProvideDB(cfg *Config, logCfg *log.Config) (db *DB, closeFn func(), err err
 		return nil, nil, errors.Wrap(err, "provide DB")
 	}
 
+	if logCfg.Level == log.LevelDebug {
+		db.db.LogMode(true)
+	}
+
 	err = migrate(db.db)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed auto migrating models")
-	}
-
-	if logCfg.Level == log.LevelDebug {
-		db.db.LogMode(true)
 	}
 
 	return db, func() {

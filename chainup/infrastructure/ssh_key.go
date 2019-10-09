@@ -55,7 +55,7 @@ func (pk *PrivateKey) Scan(src interface{}) error {
 // SSHKey is a private key that can be used as an authentication mechanism
 // for logging into provisioned servers.
 type SSHKey struct {
-	Name       string      `json:"name"`
+	Name       string      `json:"name" gorm:"type:varchar(100)"`
 	PrivateKey *PrivateKey `json:"-" gorm:"type:text"`
 }
 

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"chainup.dev/chainup/account"
+	"chainup.dev/chainup/httpserver/request"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -42,11 +43,8 @@ func NewAuthenticationRoutes(accSvc *account.Service) *Authentication {
 // Register an account with ChainUP.
 func (a *Authentication) Register(c echo.Context) error {
 	var req RegisterRequest
-	if err := c.Bind(&req); err != nil {
-		return errors.Wrap(err, "bind request")
-	}
-	if err := c.Validate(&req); err != nil {
-		return errors.Wrap(err, "validate request")
+	if err := request.Parse(c, &req); err != nil {
+		return err
 	}
 
 	acc, token, err := a.accSvc.Register(req.Email, req.Password)
@@ -63,11 +61,8 @@ func (a *Authentication) Register(c echo.Context) error {
 // Login to an account with ChainUP.
 func (a *Authentication) Login(c echo.Context) error {
 	var req LoginRequest
-	if err := c.Bind(&req); err != nil {
-		return errors.Wrap(err, "bind request")
-	}
-	if err := c.Validate(&req); err != nil {
-		return errors.Wrap(err, "validate request")
+	if err := request.Parse(c, &req); err != nil {
+		return err
 	}
 
 	token, err := a.accSvc.Login(req.Email, req.Password)

@@ -2,6 +2,7 @@ package request
 
 import (
 	"chainup.dev/chainup/account"
+	"chainup.dev/chainup/infrastructure"
 	"github.com/labstack/echo"
 )
 
@@ -33,4 +34,19 @@ func AccountFromContext(c echo.Context) *account.Account {
 	}
 
 	return acc.(*account.Account)
+}
+
+// WithProviderSettings adds an ProviderSettings resource to echo.Context.
+func WithProviderSettings(c echo.Context, settings *infrastructure.ProviderSettings) {
+	c.Set("_provider_settings", settings)
+}
+
+// ProviderSettingsFromContext returns an ProviderSettings from echo.Context.
+func ProviderSettingsFromContext(c echo.Context) *infrastructure.ProviderSettings {
+	settings := c.Get("_provider_settings")
+	if settings == nil {
+		return nil
+	}
+
+	return settings.(*infrastructure.ProviderSettings)
 }

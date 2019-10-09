@@ -83,7 +83,7 @@ func runCmd(app *chainup.App) cli.Command {
 				"provider_type": providerType.String(),
 			})
 
-			provider := infrastructure.NewProviderSettings(acc.ID, providerType, providerKey)
+			provider := infrastructure.NewProviderSettings(acc.ID, "Provider Settings", providerType, providerKey)
 			err := app.ProviderSettingsRepository.Create(context.TODO(), provider)
 			if err != nil {
 				log.ErrorErr(err, "Failed saving provider settings.")

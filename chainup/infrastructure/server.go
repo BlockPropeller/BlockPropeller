@@ -102,14 +102,14 @@ func (b *ServerBuilder) Build() (*Server, error) {
 
 // Server holds all the configuration values for a single provisioning server.
 type Server struct {
-	ID        ServerID   `json:"id"`
-	AccountID account.ID `json:"-" sql:"type:varchar(255) NOT NULL REFERENCES accounts(id)" `
+	ID        ServerID   `json:"id" gorm:"type:varchar(36) not null"`
+	AccountID account.ID `json:"-" gorm:"type:varchar(36) not null references accounts(id)" `
 
-	State ServerState `json:"state" gorm:"type:varchar(20)"`
+	State ServerState `json:"state" gorm:"type:varchar(20) not null"`
 
-	Name string `json:"name"`
+	Name string `json:"name" gorm:"type:varchar(255) not null"`
 
-	Provider ProviderType `json:"provider"`
+	Provider ProviderType `json:"provider" gorm:"type:varchar(100) not null"`
 
 	SSHKey *SSHKey `json:"ssh_key" gorm:"embedded;embedded_prefix:ssh_key_"`
 
@@ -119,10 +119,10 @@ type Server struct {
 
 	WorkspaceSnapshot *terraform.WorkspaceSnapshot `json:"-" gorm:"embedded;embedded_prefix:terraform_"`
 
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	CompletedAt *time.Time `json:"completed_at,omitempty"`
-	DeletedAt   *time.Time `json:"-"`
+	CreatedAt   time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt   time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	CompletedAt *time.Time `json:"completed_at,omitempty" gorm:"type:datetime"`
+	DeletedAt   *time.Time `json:"-" gorm:"type:datetime"`
 }
 
 // NewServer allows you to construct a provision server in a single line.

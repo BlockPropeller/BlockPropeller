@@ -137,7 +137,7 @@ type StatefulResource interface {
 // of the StatefulResource can be used instead. Resource struct can be copied as a
 // starting point it modifications are needed.
 type Resource struct {
-	State State `json:"state" gorm:"type:varchar(20)"`
+	State State `json:"state" gorm:"type:varchar(20) not null"`
 }
 
 // NewResource returns an initialized Resource with an initial state.

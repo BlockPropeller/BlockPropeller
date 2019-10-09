@@ -17,6 +17,9 @@ var (
 	ErrProviderSettingsAlreadyExists = errors.New("provider settings already exists")
 )
 
+// NilProviderSettingsID is an empty ProviderSettingsID.
+var NilProviderSettingsID ProviderSettingsID
+
 // ProviderSettingsID is a unique server identifier.
 type ProviderSettingsID string
 
@@ -34,22 +37,26 @@ func (id ProviderSettingsID) String() string {
 // has setup for his account. Only providers with valid settings can be used
 // to provision new infrastructure.
 type ProviderSettings struct {
-	ID        ProviderSettingsID `json:"id"`
-	AccountID account.ID         `json:"-" sql:"type:varchar(255) NOT NULL REFERENCES accounts(id)" `
+	ID        ProviderSettingsID `json:"id" gorm:"varchar(36) not null"`
+	AccountID account.ID         `json:"-" gorm:"type:varchar(36) not null references accounts(id)" `
 
-	Type ProviderType `json:"type"`
+	Label string `json:"label" gorm:"type:varchar(255) not null"`
 
-	Credentials string `json:"-"`
+	Type ProviderType `json:"type" gorm:"type:varchar(255) not null"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Credentials string `json:"-" gorm:"type:text not null"`
+
+	CreatedAt time.Time `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
 }
 
 // NewProviderSettings returns a new ProviderSettings instance.
-func NewProviderSettings(accountID account.ID, providerType ProviderType, credentials string) *ProviderSettings {
+func NewProviderSettings(accountID account.ID, label string, providerType ProviderType, credentials string) *ProviderSettings {
 	return &ProviderSettings{
 		ID:        NewProviderSettingsID(),
 		AccountID: accountID,
+
+		Label: label,
 
 		Type:        providerType,
 		Credentials: credentials,

@@ -24,7 +24,7 @@ func TestProvisioningJob(t *testing.T) {
 	acc := createTestAccount(t, app)
 
 	provider := infrastructure.NewProviderSettings(
-		acc.ID, infrastructure.ProviderDigitalOcean, app.Config.DigitalOcean.AccessToken)
+		acc.ID, "Test Provider", infrastructure.ProviderDigitalOcean, app.Config.DigitalOcean.AccessToken)
 
 	server, err := infrastructure.NewServerBuilder(acc.ID).
 		Provider(provider.Type).

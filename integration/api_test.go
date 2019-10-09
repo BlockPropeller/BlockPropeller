@@ -6,6 +6,7 @@ import (
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/httpserver/routes"
+	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/lib/test"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
@@ -69,6 +70,46 @@ func TestBadLoginFlow(t *testing.T) {
 	test.CheckErr(t, "send invalid login request with email", err)
 }
 
+func TestProviderSettingsFlow(t *testing.T) {
+	initEnvironment(t)
+
+	registerNewAccount(t)
+
+	// Account cannot create invalid ProviderSettings.
+	var createReq = routes.CreateProviderSettingsRequest{
+		Label:        "Test Credentials",
+		ProviderType: "SomeInvalidProvider",
+		Credentials:  "SuperSecret",
+	}
+
+	err := test.SendPost("/api/v1/provider", &createReq, 400, nil)
+	test.CheckErr(t, "fail creating invalid provider", err)
+
+	// Account can create ProviderSettings
+	createReq.ProviderType = infrastructure.ProviderDigitalOcean
+	var createResp routes.CreateProviderSettingsResponse
+
+	err = test.SendPost("/api/v1/provider", &createReq, 201, &createResp)
+	test.CheckErr(t, "create provider settings", err)
+	test.AssertStringsEqual(t, "provider type matches",
+		createResp.ProviderSettings.Type.String(), createReq.ProviderType.String())
+	test.AssertStringsEqual(t, "credentials not returned", createResp.ProviderSettings.Credentials, "")
+
+	// Account can read back ProviderSettings
+	var getResp routes.GetProviderSettingsResponse
+
+	err = test.SendGet("/api/v1/provider/"+createResp.ProviderSettings.ID.String(), 200, &getResp)
+	test.CheckErr(t, "get provider settings", err)
+	test.AssertStringsEqual(t, "same provider is returned",
+		getResp.ProviderSettings.ID.String(), createResp.ProviderSettings.ID.String())
+
+	// Another account cannot access ProviderSettings
+	registerNewAccount(t)
+
+	err = test.SendGet("/api/v1/provider/"+createResp.ProviderSettings.ID.String(), 403, nil)
+	test.CheckErr(t, "deny unauthorized access to provider settings", err)
+}
+
 func initEnvironment(t *testing.T) {
 	test.Integration(t)
 
@@ -77,6 +118,17 @@ func initEnvironment(t *testing.T) {
 	test.CheckErr(t, "initialize config", err)
 
 	test.SetBaseURL(cfg.TargetAPI)
+}
+
+func registerNewAccount(t *testing.T) *account.Account {
+	email := account.NewEmail(randomdata.Email())
+	password := account.NewClearPassword(randomdata.SillyName())
+
+	acc, token := registerAccount(t, email, password)
+
+	authenticateAs(token)
+
+	return acc
 }
 
 func registerAccount(t *testing.T, email account.Email, password account.ClearPassword) (*account.Account, account.Token) {

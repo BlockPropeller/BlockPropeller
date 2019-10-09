@@ -79,10 +79,13 @@ func SetupDatabaseServer() (*server.Server, func(), error) {
 	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(service)
 	authentication := routes.NewAuthenticationRoutes(service)
 	routesAccount := routes.NewAccountRoutes(accountRepository)
+	providerSettingsRepository := database.NewProviderSettingsRepository(db)
+	providerSettings := routes.NewProviderSettingsRoutes(providerSettingsRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
+		ProviderSettings:        providerSettings,
 	}
 	consoleLogger := log.NewConsoleLogger(logConfig)
 	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
@@ -139,10 +142,13 @@ func SetupInMemoryServer() (*server.Server, func(), error) {
 	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(service)
 	authentication := routes.NewAuthenticationRoutes(service)
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
+	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
+	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
+		ProviderSettings:        providerSettings,
 	}
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
@@ -197,10 +203,13 @@ func SetupTestServer(t *testing.T) (*server.Server, func(), error) {
 	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(service)
 	authentication := routes.NewAuthenticationRoutes(service)
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
+	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
+	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
+		ProviderSettings:        providerSettings,
 	}
 	testingLogger := log.NewTestingLogger(t)
 	serverServer, err := server.ProvideServer(serverConfig, router, testingLogger)

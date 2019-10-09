@@ -31,18 +31,18 @@ func (id DeploymentID) String() string {
 
 // Deployment is used to define what service needs to be provisioned on a particular Server.
 type Deployment struct {
-	ID       DeploymentID `json:"id"`
-	ServerID ServerID     `json:"-" sql:"type:varchar(255) REFERENCES servers(id)"`
+	ID       DeploymentID `json:"id" gorm:"type:varchar(36) not null"`
+	ServerID ServerID     `json:"-" sql:"type:varchar(36) references servers(id)"`
 
-	Type             DeploymentType   `json:"type"`
+	Type             DeploymentType   `json:"type" gorm:"type:varchar(100) not null"`
 	Configuration    DeploymentConfig `json:"configuration" gorm:"-"`
-	RawConfiguration string           `json:"-" gorm:"configuration"`
+	RawConfiguration string           `json:"-" gorm:"column:configuration;type:text not null"`
 
-	State DeploymentState `json:"state"`
+	State DeploymentState `json:"state" gorm:"type:varchar(100) not null"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"-"`
+	CreatedAt time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	DeletedAt *time.Time `json:"-" gorm:"type:datetime"`
 }
 
 // NewDeployment returns a new Deployment instance.

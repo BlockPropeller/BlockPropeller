@@ -31,13 +31,13 @@ func (id ID) String() string {
 
 // Account represents an identity on a ChainUP platform.
 type Account struct {
-	ID ID `json:"id"`
+	ID ID `json:"id" gorm:"type:varchar(36) not null"`
 
-	Email    Email    `json:"email"`
-	Password Password `json:"-"`
+	Email    Email    `json:"email" gorm:"type:varchar(255) not null;unique_index"`
+	Password Password `json:"-" gorm:"type:varchar(255)"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
 }
 
 // NewAccount returns a new Account instance.

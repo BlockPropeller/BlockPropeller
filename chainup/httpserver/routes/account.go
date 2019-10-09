@@ -25,7 +25,7 @@ func NewAccountRoutes(accRepo account.Repository) *Account {
 }
 
 // LoadAccount is a middleware for loading Accounts into request context
-// as well as checkig for correct permissions of an authenticated user.
+// as well as checking for correct permissions of an authenticated user.
 func (a *Account) LoadAccount(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authAcc := request.AuthFromContext(c)
