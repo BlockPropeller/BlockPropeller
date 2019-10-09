@@ -10,6 +10,8 @@ import (
 var (
 	// ErrAccountNotFound is returned when an account.Repository does not find an account to return.
 	ErrAccountNotFound = errors.New("account not found")
+	// ErrEmailAlreadyExists is returned when an Account with the provided Email already exists.
+	ErrEmailAlreadyExists = errors.New("email already exists")
 )
 
 // Repository defines an interface for storing and retrieving accounts.

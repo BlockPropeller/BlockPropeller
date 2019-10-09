@@ -11,6 +11,8 @@ import (
 	"chainup.dev/chainup/database"
 	"chainup.dev/chainup/database/transaction"
 	"chainup.dev/chainup/httpserver"
+	middleware2 "chainup.dev/chainup/httpserver/middleware"
+	"chainup.dev/chainup/httpserver/routes"
 	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/chainup/provision"
 	"chainup.dev/chainup/statemachine/middleware"
@@ -64,14 +66,32 @@ func SetupDatabaseServer() (*server.Server, func(), error) {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
 	serverConfig := config.Server
-	router := &httpserver.Router{}
+	databaseConfig := config.Database
 	logConfig := config.Log
-	consoleLogger := log.NewConsoleLogger(logConfig)
-	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
+	db, cleanup, err := database.ProvideDB(databaseConfig, logConfig)
 	if err != nil {
 		return nil, nil, err
 	}
+	accountRepository := database.NewAccountRepository(db)
+	jwtConfig := config.JWT
+	tokenService := account.ConfigureTokenService(jwtConfig)
+	service := account.NewService(accountRepository, tokenService)
+	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(service)
+	authentication := routes.NewAuthenticationRoutes(service)
+	routesAccount := routes.NewAccountRoutes(accountRepository)
+	router := &httpserver.Router{
+		AuthenticatedMiddleware: authenticationMiddleware,
+		AuthRoutes:              authentication,
+		AccountRoutes:           routesAccount,
+	}
+	consoleLogger := log.NewConsoleLogger(logConfig)
+	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	return serverServer, func() {
+		cleanup()
 	}, nil
 }
 
@@ -112,7 +132,18 @@ func SetupInMemoryServer() (*server.Server, func(), error) {
 	provider := ProvideFileConfigProvider()
 	config := ProvideConfig(provider)
 	serverConfig := config.Server
-	router := &httpserver.Router{}
+	inMemoryRepository := account.NewInMemoryRepository()
+	jwtConfig := config.JWT
+	tokenService := account.ConfigureTokenService(jwtConfig)
+	service := account.NewService(inMemoryRepository, tokenService)
+	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(service)
+	authentication := routes.NewAuthenticationRoutes(service)
+	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
+	router := &httpserver.Router{
+		AuthenticatedMiddleware: authenticationMiddleware,
+		AuthRoutes:              authentication,
+		AccountRoutes:           routesAccount,
+	}
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
 	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
@@ -159,7 +190,18 @@ func SetupTestServer(t *testing.T) (*server.Server, func(), error) {
 	provider := ProvideTestConfigProvider()
 	config := ProvideConfig(provider)
 	serverConfig := config.Server
-	router := &httpserver.Router{}
+	inMemoryRepository := account.NewInMemoryRepository()
+	jwtConfig := config.JWT
+	tokenService := account.ConfigureTokenService(jwtConfig)
+	service := account.NewService(inMemoryRepository, tokenService)
+	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(service)
+	authentication := routes.NewAuthenticationRoutes(service)
+	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
+	router := &httpserver.Router{
+		AuthenticatedMiddleware: authenticationMiddleware,
+		AuthRoutes:              authentication,
+		AccountRoutes:           routesAccount,
+	}
 	testingLogger := log.NewTestingLogger(t)
 	serverServer, err := server.ProvideServer(serverConfig, router, testingLogger)
 	if err != nil {

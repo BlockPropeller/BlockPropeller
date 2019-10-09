@@ -23,27 +23,32 @@ func NewService(accRepo Repository, tokenSvc *TokenService) *Service {
 }
 
 // Register an Account with the platform.
-func (s *Service) Register(email Email, password ClearPassword) (*Account, error) {
+func (s *Service) Register(email Email, password ClearPassword) (*Account, Token, error) {
 	if err := email.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid email")
+		return nil, NilToken, errors.Wrap(err, "invalid email")
 	}
 	if err := password.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid password")
+		return nil, NilToken, errors.Wrap(err, "invalid password")
 	}
 
 	pass, err := GeneratePassword(password)
 	if err != nil {
-		return nil, errors.Wrap(err, "generate password")
+		return nil, NilToken, errors.Wrap(err, "generate password")
 	}
 
 	acc := NewAccount(email, pass)
 
 	err = s.accRepo.Create(context.TODO(), acc)
 	if err != nil {
-		return nil, errors.Wrap(err, "create account")
+		return nil, NilToken, errors.Wrap(err, "create account")
 	}
 
-	return acc, nil
+	token, err := s.tokenSvc.GenerateToken(acc.ID)
+	if err != nil {
+		return nil, NilToken, errors.Wrap(err, "generate token")
+	}
+
+	return acc, token, nil
 }
 
 // Login to an Account using a token.

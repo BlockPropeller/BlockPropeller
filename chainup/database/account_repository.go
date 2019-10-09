@@ -52,7 +52,16 @@ func (repo *AccountRepository) List(ctx context.Context) ([]*account.Account, er
 
 // Create inserts a new Account into the repository.
 func (repo *AccountRepository) Create(ctx context.Context, acc *account.Account) error {
-	err := repo.db.Model(ctx, acc).Create(acc).Error
+	exists, err := repo.checkEmailExists(ctx, acc.Email)
+	if err != nil {
+		return errors.Wrap(err, "check email exists")
+	}
+
+	if exists {
+		return account.ErrEmailAlreadyExists
+	}
+
+	err = repo.db.Model(ctx, acc).Create(acc).Error
 	if err != nil {
 		return errors.Wrap(err, "create account")
 	}
@@ -68,4 +77,17 @@ func (repo *AccountRepository) Update(ctx context.Context, acc *account.Account)
 	}
 
 	return nil
+}
+
+func (repo *AccountRepository) checkEmailExists(ctx context.Context, email account.Email) (bool, error) {
+	var count int
+	err := repo.db.Model(ctx, &account.Account{}).
+		Where("email = ?", email).
+		Count(&count).
+		Error
+	if err != nil {
+		return false, errors.Wrap(err, "query accounts with email count")
+	}
+
+	return count > 0, nil
 }

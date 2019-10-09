@@ -29,6 +29,10 @@ func LoggerMiddleware(logger log.Logger) echo.MiddlewareFunc {
 			if err != nil {
 				logFields["error"] = err.Error()
 			}
+			intErr := c.Get("_internal_error")
+			if intErr != nil {
+				logFields["internal_error"] = intErr.(error).Error()
+			}
 
 			logger.Info("HTTP Request", logFields)
 

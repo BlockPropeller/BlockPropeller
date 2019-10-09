@@ -27,7 +27,7 @@ func createCmd(app *chainup.App) cli.Command {
 			email := account.NewEmail(c.String("email"))
 			password := account.NewClearPassword(c.String("password"))
 
-			acc, err := app.AccountService.Register(email, password)
+			acc, _, err := app.AccountService.Register(email, password)
 			if err != nil {
 				log.ErrorErr(err, "register new account")
 				return

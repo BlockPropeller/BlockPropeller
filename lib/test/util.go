@@ -44,7 +44,7 @@ func CheckErr(t *testing.T, name string, err error) {
 		return
 	}
 
-	t.Errorf("%s: got err '%s'", name, err)
+	t.Errorf("%s: got err: %+v.", name, err)
 	t.FailNow()
 }
 

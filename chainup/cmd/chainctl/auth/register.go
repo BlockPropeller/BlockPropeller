@@ -3,6 +3,7 @@ package auth
 import (
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/account"
+	"chainup.dev/chainup/cmd/chainctl/util/localauth"
 	"chainup.dev/lib/log"
 	"github.com/urfave/cli"
 )
@@ -27,9 +28,15 @@ func registerCmd(app *chainup.App) cli.Command {
 			email := account.NewEmail(c.String("email"))
 			password := account.NewClearPassword(c.String("password"))
 
-			acc, err := app.AccountService.Register(email, password)
+			acc, token, err := app.AccountService.Register(email, password)
 			if err != nil {
 				log.ErrorErr(err, "register new account")
+				return
+			}
+
+			err = localauth.SetToken(token)
+			if err != nil {
+				log.ErrorErr(err, "failed saving token")
 				return
 			}
 

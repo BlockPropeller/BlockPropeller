@@ -57,6 +57,7 @@ func ProvideFileConfigProvider() config.Provider {
 // of the current working directory.
 func ProvideTestConfigProvider() config.Provider {
 	opts := append([]config.FileProviderOpt{
+		config.WithOverride("test"),
 		config.WithName("config"),
 		config.WithPath("config"),
 		config.WithPath("."),

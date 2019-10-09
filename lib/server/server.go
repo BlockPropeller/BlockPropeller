@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"chainup.dev/lib/log"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -21,6 +22,8 @@ type Server struct {
 func ProvideServer(cfg *Config, router Router, logger log.Logger) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
+	e.Validator = &formValidator{validator: validator.New()}
+	e.HTTPErrorHandler = httpErrorHandler
 	e.Use(LoggerMiddleware(logger))
 
 	err := router.RegisterRoutes(e)

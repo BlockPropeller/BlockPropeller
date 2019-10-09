@@ -1,6 +1,8 @@
 package httpserver
 
 import (
+	"chainup.dev/chainup/httpserver/middleware"
+	"chainup.dev/chainup/httpserver/routes"
 	"chainup.dev/lib/server"
 	"github.com/google/wire"
 )
@@ -11,5 +13,8 @@ var Set = wire.NewSet(
 	wire.Struct(new(Router), "*"),
 	wire.Bind(new(server.Router), new(*Router)),
 
+	middleware.NewAuthenticationMiddleware,
+
+	routes.Set,
 	server.Set,
 )

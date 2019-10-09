@@ -50,6 +50,11 @@ func (p Password) Compare(password ClearPassword) error {
 	return bcrypt.CompareHashAndPassword([]byte(p), []byte(password))
 }
 
+// String satisfies the Stringer interface.
+func (p Password) String() string {
+	return string(p)
+}
+
 // Email is an Accounts email.
 type Email string
 
