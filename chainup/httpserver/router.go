@@ -25,9 +25,11 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 
 	protectedAPI.GET("/account/:account_id", r.AccountRoutes.Get,
 		r.AccountRoutes.LoadAccount)
-	protectedAPI.GET("/provider/:settings_id", r.ProviderSettings.Get,
+	protectedAPI.GET("/provider/types", r.ProviderSettings.GetProviderTypes)
+	protectedAPI.GET("/provider/settings", r.ProviderSettings.List)
+	protectedAPI.GET("/provider/settings/:settings_id", r.ProviderSettings.Get,
 		r.ProviderSettings.LoadProviderSettings)
-	protectedAPI.POST("/provider", r.ProviderSettings.Create,
+	protectedAPI.POST("/provider/settings", r.ProviderSettings.Create,
 		r.ProviderSettings.LoadProviderSettings)
 
 	return nil

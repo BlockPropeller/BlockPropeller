@@ -68,6 +68,9 @@ func NewProviderSettings(accountID account.ID, label string, providerType Provid
 
 // ProviderSettingsRepository defines an interface for storing and retrieving provisioning provider settings.
 type ProviderSettingsRepository interface {
+	// List all provider settings for a particular owner.
+	List(ctx context.Context, ownerID account.ID) ([]*ProviderSettings, error)
+
 	// Find a ProviderSettings given a ProviderSettingsID.
 	Find(ctx context.Context, id ProviderSettingsID) (*ProviderSettings, error)
 
@@ -88,6 +91,23 @@ type InMemoryProviderSettingsRepository struct {
 // NewInMemoryProviderSettingsRepository returns a new InMemoryProviderSettingsRepository instance.
 func NewInMemoryProviderSettingsRepository() *InMemoryProviderSettingsRepository {
 	return &InMemoryProviderSettingsRepository{}
+}
+
+// List all provider settings for a particular owner.
+func (repo *InMemoryProviderSettingsRepository) List(ctx context.Context, ownerID account.ID) ([]*ProviderSettings, error) {
+	var settings []*ProviderSettings
+	repo.providerSettings.Range(func(k, v interface{}) bool {
+		setting := v.(*ProviderSettings)
+		if setting.AccountID != ownerID {
+			return true
+		}
+
+		settings = append(settings, setting)
+
+		return true
+	})
+
+	return settings, nil
 }
 
 // Find a ProviderSettings given a ProviderSettingsID.

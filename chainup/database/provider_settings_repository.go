@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/infrastructure"
 	"github.com/pkg/errors"
 )
@@ -15,6 +16,20 @@ type ProviderSettingsRepository struct {
 // NewProviderSettingsRepository returns a new ProviderSettingsRepository instance.
 func NewProviderSettingsRepository(db *DB) *ProviderSettingsRepository {
 	return &ProviderSettingsRepository{db: db}
+}
+
+// List all provider settings for a particular owner.
+func (repo *ProviderSettingsRepository) List(ctx context.Context, ownerID account.ID) ([]*infrastructure.ProviderSettings, error) {
+	var settings []*infrastructure.ProviderSettings
+	err := repo.db.Model(ctx, &settings).
+		Where("account_id = ?", ownerID).
+		Find(&settings).
+		Error
+	if err != nil {
+		return nil, errors.Wrap(err, "list provider settings")
+	}
+
+	return settings, nil
 }
 
 // Find a ProviderSettings given a ProviderSettingsID.

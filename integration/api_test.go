@@ -6,7 +6,6 @@ import (
 	"chainup.dev/chainup"
 	"chainup.dev/chainup/account"
 	"chainup.dev/chainup/httpserver/routes"
-	"chainup.dev/chainup/infrastructure"
 	"chainup.dev/lib/test"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
@@ -82,23 +81,37 @@ func TestProviderSettingsFlow(t *testing.T) {
 		Credentials:  "SuperSecret",
 	}
 
-	err := test.SendPost("/api/v1/provider", &createReq, 400, nil)
+	err := test.SendPost("/api/v1/provider/settings", &createReq, 400, nil)
 	test.CheckErr(t, "fail creating invalid provider", err)
 
+	// Get valid accounts.
+	var typesResp routes.ListProviderTypesResponse
+	err = test.SendGet("/api/v1/provider/types", 200, &typesResp)
+	test.CheckErr(t, "get available provider types", err)
+	test.AssertBoolEqual(t, "there is at least one provider type",
+		len(typesResp.ProviderTypes) > 0, true)
+
 	// Account can create ProviderSettings
-	createReq.ProviderType = infrastructure.ProviderDigitalOcean
+	createReq.ProviderType = typesResp.ProviderTypes[0]
 	var createResp routes.CreateProviderSettingsResponse
 
-	err = test.SendPost("/api/v1/provider", &createReq, 201, &createResp)
+	err = test.SendPost("/api/v1/provider/settings", &createReq, 201, &createResp)
 	test.CheckErr(t, "create provider settings", err)
 	test.AssertStringsEqual(t, "provider type matches",
 		createResp.ProviderSettings.Type.String(), createReq.ProviderType.String())
 	test.AssertStringsEqual(t, "credentials not returned", createResp.ProviderSettings.Credentials, "")
 
+	// Account can list its ProviderSettings
+	var listResp routes.ListProviderSettingsResponse
+	err = test.SendGet("/api/v1/provider/settings", 200, &listResp)
+	test.CheckErr(t, "list provider settings", err)
+	test.AssertBoolEqual(t, "there is a provider setting listed",
+		len(listResp.ProviderSettings) > 0, true)
+
 	// Account can read back ProviderSettings
 	var getResp routes.GetProviderSettingsResponse
 
-	err = test.SendGet("/api/v1/provider/"+createResp.ProviderSettings.ID.String(), 200, &getResp)
+	err = test.SendGet("/api/v1/provider/settings/"+createResp.ProviderSettings.ID.String(), 200, &getResp)
 	test.CheckErr(t, "get provider settings", err)
 	test.AssertStringsEqual(t, "same provider is returned",
 		getResp.ProviderSettings.ID.String(), createResp.ProviderSettings.ID.String())
@@ -106,7 +119,7 @@ func TestProviderSettingsFlow(t *testing.T) {
 	// Another account cannot access ProviderSettings
 	registerNewAccount(t)
 
-	err = test.SendGet("/api/v1/provider/"+createResp.ProviderSettings.ID.String(), 403, nil)
+	err = test.SendGet("/api/v1/provider/settings/"+createResp.ProviderSettings.ID.String(), 403, nil)
 	test.CheckErr(t, "deny unauthorized access to provider settings", err)
 }
 

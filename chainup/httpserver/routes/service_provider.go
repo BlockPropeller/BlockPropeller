@@ -9,6 +9,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ListProviderTypesResponse is a response to the get provider types request.
+type ListProviderTypesResponse struct {
+	ProviderTypes []infrastructure.ProviderType `json:"provider_types"`
+}
+
+// ListProviderSettingsResponse is a response to the list provider settings request.
+type ListProviderSettingsResponse struct {
+	ProviderSettings []*infrastructure.ProviderSettings `json:"provider_settings"`
+}
+
 // GetProviderSettingsResponse is a response to the get provider settings request.
 type GetProviderSettingsResponse struct {
 	ProviderSettings *infrastructure.ProviderSettings `json:"provider_settings"`
@@ -66,6 +76,30 @@ func (ps *ProviderSettings) LoadProviderSettings(next echo.HandlerFunc) echo.Han
 
 		return next(c)
 	}
+}
+
+// GetProviderTypes returns all available provider types.
+func (ps *ProviderSettings) GetProviderTypes(c echo.Context) error {
+	return c.JSON(200, &ListProviderTypesResponse{
+		ProviderTypes: infrastructure.ValidProviders,
+	})
+}
+
+// List all ProviderSettings for an Account.
+func (ps *ProviderSettings) List(c echo.Context) error {
+	acc := request.AuthFromContext(c)
+	if acc == nil {
+		return echo.ErrForbidden
+	}
+
+	settings, err := ps.settingsRepo.List(context.Background(), acc.ID)
+	if err != nil {
+		return errors.Wrap(err, "list provider settings")
+	}
+
+	return c.JSON(200, &ListProviderSettingsResponse{
+		ProviderSettings: settings,
+	})
 }
 
 // Get a ProviderSettings.
