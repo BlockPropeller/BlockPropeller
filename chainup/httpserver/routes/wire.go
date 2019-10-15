@@ -8,4 +8,5 @@ var Set = wire.NewSet(
 	NewAuthenticationRoutes,
 	NewAccountRoutes,
 	NewProviderSettingsRoutes,
+	NewProvisionRoutes,
 )

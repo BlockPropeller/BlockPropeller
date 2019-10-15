@@ -10,9 +10,10 @@ import (
 type Router struct {
 	AuthenticatedMiddleware *middleware.AuthenticationMiddleware
 
-	AuthRoutes       *routes.Authentication
-	AccountRoutes    *routes.Account
-	ProviderSettings *routes.ProviderSettings
+	AuthRoutes             *routes.Authentication
+	AccountRoutes          *routes.Account
+	ProviderSettingsRoutes *routes.ProviderSettings
+	ProvisionRoutes        *routes.Provision
 }
 
 // RegisterRoutes satisfies the server.Router interface.
@@ -25,12 +26,13 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 
 	protectedAPI.GET("/account/:account_id", r.AccountRoutes.Get,
 		r.AccountRoutes.LoadAccount)
-	protectedAPI.GET("/provider/types", r.ProviderSettings.GetProviderTypes)
-	protectedAPI.GET("/provider/settings", r.ProviderSettings.List)
-	protectedAPI.GET("/provider/settings/:settings_id", r.ProviderSettings.Get,
-		r.ProviderSettings.LoadProviderSettings)
-	protectedAPI.POST("/provider/settings", r.ProviderSettings.Create,
-		r.ProviderSettings.LoadProviderSettings)
+
+	protectedAPI.GET("/provider/types", r.ProviderSettingsRoutes.GetProviderTypes)
+	protectedAPI.GET("/provider/settings", r.ProviderSettingsRoutes.List)
+	protectedAPI.GET("/provider/settings/:settings_id", r.ProviderSettingsRoutes.Get,
+		r.ProviderSettingsRoutes.LoadProviderSettings)
+	protectedAPI.POST("/provider/settings", r.ProviderSettingsRoutes.Create,
+		r.ProviderSettingsRoutes.LoadProviderSettings)
 
 	return nil
 }

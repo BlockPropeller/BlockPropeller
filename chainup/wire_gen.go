@@ -81,11 +81,14 @@ func SetupDatabaseServer() (*server.Server, func(), error) {
 	routesAccount := routes.NewAccountRoutes(accountRepository)
 	providerSettingsRepository := database.NewProviderSettingsRepository(db)
 	providerSettings := routes.NewProviderSettingsRoutes(providerSettingsRepository)
+	jobRepository := database.NewJobRepository(db)
+	routesProvision := routes.NewProvisionRoutes(jobRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
-		ProviderSettings:        providerSettings,
+		ProviderSettingsRoutes:  providerSettings,
+		ProvisionRoutes:         routesProvision,
 	}
 	consoleLogger := log.NewConsoleLogger(logConfig)
 	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
@@ -144,11 +147,14 @@ func SetupInMemoryServer() (*server.Server, func(), error) {
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
+	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	routesProvision := routes.NewProvisionRoutes(inMemoryJobRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
-		ProviderSettings:        providerSettings,
+		ProviderSettingsRoutes:  providerSettings,
+		ProvisionRoutes:         routesProvision,
 	}
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
@@ -205,11 +211,14 @@ func SetupTestServer(t *testing.T) (*server.Server, func(), error) {
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
+	inMemoryJobRepository := provision.NewInMemoryJobRepository()
+	routesProvision := routes.NewProvisionRoutes(inMemoryJobRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
-		ProviderSettings:        providerSettings,
+		ProviderSettingsRoutes:  providerSettings,
+		ProvisionRoutes:         routesProvision,
 	}
 	testingLogger := log.NewTestingLogger(t)
 	serverServer, err := server.ProvideServer(serverConfig, router, testingLogger)
