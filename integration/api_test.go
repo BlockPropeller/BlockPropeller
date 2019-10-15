@@ -3,10 +3,10 @@ package integration
 import (
 	"testing"
 
-	"chainup.dev/chainup"
-	"chainup.dev/chainup/account"
-	"chainup.dev/chainup/httpserver/routes"
-	"chainup.dev/lib/test"
+	"blockpropeller.dev/blockpropeller"
+	"blockpropeller.dev/blockpropeller/account"
+	"blockpropeller.dev/blockpropeller/httpserver/routes"
+	"blockpropeller.dev/lib/test"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/pkg/errors"
 )
@@ -127,7 +127,7 @@ func initEnvironment(t *testing.T) {
 	test.Integration(t)
 
 	var cfg TestConfig
-	_, err := chainup.ProvideTestConfigProvider().Load(&cfg)
+	_, err := blockpropeller.ProvideTestConfigProvider().Load(&cfg)
 	test.CheckErr(t, "initialize config", err)
 
 	test.SetBaseURL(cfg.TargetAPI)

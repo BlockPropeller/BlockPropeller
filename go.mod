@@ -1,4 +1,4 @@
-module chainup.dev
+module blockpropeller.dev
 
 go 1.13
 

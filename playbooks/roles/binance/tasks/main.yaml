@@ -3,7 +3,7 @@
   docker_container:
     name: "binance-{{binance_node_type}}-{{binance_node_network}}"
     state: started
-    image: "chainup/binance-{{binance_node_type}}-{{binance_node_network}}:{{binance_node_version}}"
+    image: "blockpropeller/binance-{{binance_node_type}}-{{binance_node_network}}:{{binance_node_version}}"
     command:
       - "--chain-id {{binance_chain_ids[binance_node_network]}}"
       - "--node {{binance_nodes[binance_node_network]}}"

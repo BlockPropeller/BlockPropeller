@@ -3,7 +3,7 @@ package config_test
 import (
 	"testing"
 
-	"chainup.dev/lib/config"
+	"blockpropeller.dev/lib/config"
 )
 
 type TestConfig struct {

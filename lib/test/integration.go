@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"chainup.dev/lib/log"
+	"blockpropeller.dev/lib/log"
 )
 
 // Integration marks the test as an integration test.

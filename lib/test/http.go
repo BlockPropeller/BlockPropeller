@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"chainup.dev/lib/log"
+	"blockpropeller.dev/lib/log"
 	"github.com/pkg/errors"
 )
 

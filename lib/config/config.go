@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"chainup.dev/lib/log"
+	"blockpropeller.dev/lib/log"
 )
 
 // Config is an abstraction over a configuration structure

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"chainup.dev/lib/log"
+	"blockpropeller.dev/lib/log"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"

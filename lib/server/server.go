@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"chainup.dev/lib/log"
+	"blockpropeller.dev/lib/log"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )

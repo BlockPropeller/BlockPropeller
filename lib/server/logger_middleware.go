@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"chainup.dev/lib/log"
+	"blockpropeller.dev/lib/log"
 	"github.com/labstack/echo"
 )
 

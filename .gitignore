@@ -3,7 +3,7 @@
 
 .DS_Store
 
-.chainup/
+.blockpropeller/
 config.yaml
 
 cp.out

@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"chainup.dev/chainup"
-	"chainup.dev/chainup/account"
-	"chainup.dev/chainup/binance"
-	"chainup.dev/chainup/infrastructure"
-	"chainup.dev/chainup/provision"
-	"chainup.dev/lib/test"
+	"blockpropeller.dev/blockpropeller"
+	"blockpropeller.dev/blockpropeller/account"
+	"blockpropeller.dev/blockpropeller/binance"
+	"blockpropeller.dev/blockpropeller/infrastructure"
+	"blockpropeller.dev/blockpropeller/provision"
+	"blockpropeller.dev/lib/test"
 	"github.com/blang/semver"
 )
 
@@ -20,7 +20,7 @@ func TestProvisioningJob(t *testing.T) {
 	t.SkipNow()
 	test.Integration(t)
 
-	app := chainup.SetupTestApp(t)
+	app := blockpropeller.SetupTestApp(t)
 
 	acc := createTestAccount(t, app)
 
@@ -77,7 +77,7 @@ func TestProvisioningJob(t *testing.T) {
 	test.CheckErr(t, "check node health", err)
 }
 
-func createTestAccount(t *testing.T, app *chainup.App) *account.Account {
+func createTestAccount(t *testing.T, app *blockpropeller.App) *account.Account {
 	acc := account.NewAccount(account.Email(fmt.Sprintf("test-%d@example.com", rand.Int())), "")
 
 	err := app.AccountRepository.Create(context.Background(), acc)

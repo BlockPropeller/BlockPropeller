@@ -1,7 +1,7 @@
 .PHONY: setup tools mod generate fmt lint build-all test watch-api precommit integration graph
 
 setup: tools
-	mkdir .chainup
+	mkdir .blockpropeller
 	git config core.hooksPath .githooks
 
 tools:
