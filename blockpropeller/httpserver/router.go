@@ -31,8 +31,11 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 	protectedAPI.GET("/provider/settings", r.ProviderSettingsRoutes.List)
 	protectedAPI.GET("/provider/settings/:settings_id", r.ProviderSettingsRoutes.Get,
 		r.ProviderSettingsRoutes.LoadProviderSettings)
-	protectedAPI.POST("/provider/settings", r.ProviderSettingsRoutes.Create,
-		r.ProviderSettingsRoutes.LoadProviderSettings)
+	protectedAPI.POST("/provider/settings", r.ProviderSettingsRoutes.Create)
+
+	protectedAPI.POST("/provision/job", r.ProvisionRoutes.CreateJob)
+	protectedAPI.GET("/provision/job/:job_id", r.ProvisionRoutes.GetJob,
+		r.ProvisionRoutes.LoadJob)
 
 	return nil
 }

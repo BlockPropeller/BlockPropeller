@@ -27,11 +27,6 @@ func (repo *DeploymentRepository) Find(ctx context.Context, id infrastructure.De
 		return nil, errors.Wrap(err, "find deployment by ID")
 	}
 
-	err = repo.parseDeployment(&deployment)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse deployment config")
-	}
-
 	return &deployment, nil
 }
 
@@ -93,26 +88,6 @@ func (repo *DeploymentRepository) prepareDeployment(deployment *infrastructure.D
 	}
 
 	deployment.RawConfiguration = string(data)
-
-	return nil
-}
-
-func (repo *DeploymentRepository) parseDeployment(deployment *infrastructure.Deployment) error {
-	var data map[string]string
-	err := json.Unmarshal([]byte(deployment.RawConfiguration), &data)
-	if err != nil {
-		return errors.Wrap(err, "parse raw configuration")
-	}
-
-	spec, err := infrastructure.GetDeploymentSpec(deployment.Type)
-	if err != nil {
-		return err
-	}
-
-	deployment.Configuration, err = spec.UnmarshalConfig(data)
-	if err != nil {
-		return errors.Wrap(err, "unmarshal config")
-	}
 
 	return nil
 }

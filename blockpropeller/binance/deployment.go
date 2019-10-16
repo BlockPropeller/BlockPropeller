@@ -55,9 +55,9 @@ func (nodeDeploymentSpec) HealthCheck(srv *infrastructure.Server, deployment *in
 
 // NodeConfig holds the configuration for the Binance Chain Node.
 type NodeConfig struct {
-	Network  Network
-	NodeType NodeType
-	Version  semver.Version
+	Network  Network        `json:"node_network"`
+	NodeType NodeType       `json:"node_type"`
+	Version  semver.Version `json:"node_version"`
 }
 
 // MarshalMap converts a NodeConfig to a map[string]string.

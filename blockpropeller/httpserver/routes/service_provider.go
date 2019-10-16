@@ -33,7 +33,7 @@ type CreateProviderSettingsRequest struct {
 
 // CreateProviderSettingsResponse is a response to the create provider settings request.
 type CreateProviderSettingsResponse struct {
-	ProviderSettings *infrastructure.ProviderSettings
+	ProviderSettings *infrastructure.ProviderSettings `json:"provider_settings"`
 }
 
 // ProviderSettings REST Resource for accessing ProviderSettings resource.

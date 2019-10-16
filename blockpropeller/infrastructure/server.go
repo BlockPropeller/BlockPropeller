@@ -113,9 +113,9 @@ type Server struct {
 
 	SSHKey *SSHKey `json:"ssh_key" gorm:"embedded;embedded_prefix:ssh_key_"`
 
-	IPAddress net.IP `json:"ip_address" gorm:"type:varchar(255)"`
+	IPAddress net.IP `json:"ip_address,omitempty" gorm:"type:varchar(255)"`
 
-	Deployments []*Deployment `json:"deployments"`
+	Deployments []*Deployment `json:"deployments,omitempty"`
 
 	WorkspaceSnapshot *terraform.WorkspaceSnapshot `json:"-" gorm:"embedded;embedded_prefix:terraform_"`
 

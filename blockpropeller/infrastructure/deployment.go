@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -58,6 +59,36 @@ func NewDeployment(typ DeploymentType, config DeploymentConfig) *Deployment {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+}
+
+// AfterFind is a GORM hook that parses Deployment Config information into a structured format.
+func (d *Deployment) AfterFind() error {
+	if d.RawConfiguration == "" {
+		return nil
+	}
+
+	return d.parseConfig()
+}
+
+// parseConfig transforms the raw config used for serialization into a proper structure.
+func (d *Deployment) parseConfig() error {
+	var data map[string]string
+	err := json.Unmarshal([]byte(d.RawConfiguration), &data)
+	if err != nil {
+		return errors.Wrap(err, "parse raw configuration")
+	}
+
+	spec, err := GetDeploymentSpec(d.Type)
+	if err != nil {
+		return err
+	}
+
+	d.Configuration, err = spec.UnmarshalConfig(data)
+	if err != nil {
+		return errors.Wrap(err, "unmarshal config")
+	}
+
+	return nil
 }
 
 // DeploymentRepository defines an interface for storing and retrieving deployments.

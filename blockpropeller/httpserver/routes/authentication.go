@@ -48,6 +48,9 @@ func (a *Authentication) Register(c echo.Context) error {
 	}
 
 	acc, token, err := a.accSvc.Register(req.Email, req.Password)
+	if errors.Cause(err) == account.ErrEmailAlreadyExists {
+		return echo.ErrBadRequest.SetInternal(err)
+	}
 	if err != nil {
 		return errors.Wrap(err, "register account")
 	}

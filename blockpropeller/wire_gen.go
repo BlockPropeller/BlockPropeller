@@ -82,7 +82,10 @@ func SetupDatabaseServer() (*server.Server, func(), error) {
 	providerSettingsRepository := database.NewProviderSettingsRepository(db)
 	providerSettings := routes.NewProviderSettingsRoutes(providerSettingsRepository)
 	jobRepository := database.NewJobRepository(db)
-	routesProvision := routes.NewProvisionRoutes(jobRepository)
+	serverRepository := database.NewServerRepository(db)
+	deploymentRepository := database.NewDeploymentRepository(db)
+	jobScheduler := provision.NewJobScheduler(db, jobRepository, serverRepository, deploymentRepository)
+	routesProvision := routes.NewProvisionRoutes(jobScheduler, jobRepository, providerSettingsRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
@@ -147,8 +150,12 @@ func SetupInMemoryServer() (*server.Server, func(), error) {
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
+	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	routesProvision := routes.NewProvisionRoutes(inMemoryJobRepository)
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
+	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
+	routesProvision := routes.NewProvisionRoutes(jobScheduler, inMemoryJobRepository, inMemoryProviderSettingsRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
@@ -211,8 +218,12 @@ func SetupTestServer(t *testing.T) (*server.Server, func(), error) {
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
 	inMemoryProviderSettingsRepository := infrastructure.NewInMemoryProviderSettingsRepository()
 	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
+	inMemoryTxContext := transaction.NewInMemoryTransactionContext()
 	inMemoryJobRepository := provision.NewInMemoryJobRepository()
-	routesProvision := routes.NewProvisionRoutes(inMemoryJobRepository)
+	inMemoryServerRepository := infrastructure.NewInMemoryServerRepository()
+	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
+	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
+	routesProvision := routes.NewProvisionRoutes(jobScheduler, inMemoryJobRepository, inMemoryProviderSettingsRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,

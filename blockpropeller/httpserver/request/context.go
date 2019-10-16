@@ -3,6 +3,7 @@ package request
 import (
 	"blockpropeller.dev/blockpropeller/account"
 	"blockpropeller.dev/blockpropeller/infrastructure"
+	"blockpropeller.dev/blockpropeller/provision"
 	"github.com/labstack/echo"
 )
 
@@ -49,4 +50,19 @@ func ProviderSettingsFromContext(c echo.Context) *infrastructure.ProviderSetting
 	}
 
 	return settings.(*infrastructure.ProviderSettings)
+}
+
+// WithJob adds an Job resource to echo.Context.
+func WithJob(c echo.Context, job *provision.Job) {
+	c.Set("_job", job)
+}
+
+// JobFromContext returns an Job from echo.Context.
+func JobFromContext(c echo.Context) *provision.Job {
+	job := c.Get("_job")
+	if job == nil {
+		return nil
+	}
+
+	return job.(*provision.Job)
 }

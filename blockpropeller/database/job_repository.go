@@ -23,6 +23,8 @@ func (repo *JobRepository) Find(ctx context.Context, id provision.JobID) (*provi
 	var job provision.Job
 	err := repo.db.Model(ctx, &job).
 		Preload("ProviderSettings").
+		Preload("Server").
+		Preload("Deployment").
 		Where("id = ?", id).
 		First(&job).
 		Error
