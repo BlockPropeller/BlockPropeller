@@ -91,6 +91,7 @@ func SetupDatabaseServer() (*AppServer, func(), error) {
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, db, serverRepository, deploymentRepository)
 	routesServer := routes.NewServerRoutes(serverDestroyer, serverRepository)
+	deployment := routes.NewDeploymentRoutes(deploymentRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
@@ -98,6 +99,7 @@ func SetupDatabaseServer() (*AppServer, func(), error) {
 		ProviderSettingsRoutes:  providerSettings,
 		ProvisionRoutes:         routesProvision,
 		ServerRoutes:            routesServer,
+		DeploymentRoutes:        deployment,
 	}
 	consoleLogger := log.NewConsoleLogger(logConfig)
 	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
@@ -180,6 +182,7 @@ func SetupInMemoryServer() (*AppServer, func(), error) {
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
 	routesServer := routes.NewServerRoutes(serverDestroyer, inMemoryServerRepository)
+	deployment := routes.NewDeploymentRoutes(inMemoryDeploymentRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
@@ -187,6 +190,7 @@ func SetupInMemoryServer() (*AppServer, func(), error) {
 		ProviderSettingsRoutes:  providerSettings,
 		ProvisionRoutes:         routesProvision,
 		ServerRoutes:            routesServer,
+		DeploymentRoutes:        deployment,
 	}
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
@@ -267,6 +271,7 @@ func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
 	routesServer := routes.NewServerRoutes(serverDestroyer, inMemoryServerRepository)
+	deployment := routes.NewDeploymentRoutes(inMemoryDeploymentRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
@@ -274,6 +279,7 @@ func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 		ProviderSettingsRoutes:  providerSettings,
 		ProvisionRoutes:         routesProvision,
 		ServerRoutes:            routesServer,
+		DeploymentRoutes:        deployment,
 	}
 	testingLogger := log.NewTestingLogger(t)
 	serverServer, err := server.ProvideServer(serverConfig, router, testingLogger)

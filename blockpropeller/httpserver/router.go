@@ -15,6 +15,7 @@ type Router struct {
 	ProviderSettingsRoutes *routes.ProviderSettings
 	ProvisionRoutes        *routes.Provision
 	ServerRoutes           *routes.Server
+	DeploymentRoutes       *routes.Deployment
 }
 
 // RegisterRoutes satisfies the server.Router interface.
@@ -44,6 +45,9 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 	protectedAPI.GET("/server/:server_id", r.ServerRoutes.Get,
 		r.ServerRoutes.LoadServer)
 	protectedAPI.DELETE("/server/:server_id", r.ServerRoutes.Delete,
+		r.ServerRoutes.LoadServer)
+
+	protectedAPI.GET("/server/:server_id/deployment", r.DeploymentRoutes.List,
 		r.ServerRoutes.LoadServer)
 
 	return nil

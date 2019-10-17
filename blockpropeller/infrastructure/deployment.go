@@ -98,6 +98,9 @@ type DeploymentRepository interface {
 	// Find a Deployment given a DeploymentID.
 	Find(ctx context.Context, id DeploymentID) (*Deployment, error)
 
+	// FindByServer returns deployments on a given Server.
+	FindByServer(ctx context.Context, id ServerID) ([]*Deployment, error)
+
 	// Create a new Deployment.
 	Create(ctx context.Context, deployment *Deployment) error
 
@@ -128,6 +131,24 @@ func (repo *InMemoryDeploymentRepository) Find(ctx context.Context, id Deploymen
 	}
 
 	return req.(*Deployment), nil
+}
+
+// FindByServer returns deployments on a given Server.
+func (repo *InMemoryDeploymentRepository) FindByServer(ctx context.Context, id ServerID) ([]*Deployment, error) {
+	var deployments []*Deployment
+
+	repo.deployments.Range(func(k, v interface{}) bool {
+		deployment := v.(*Deployment)
+		if deployment.ServerID.String() != id.String() {
+			return true
+		}
+
+		deployments = append(deployments, deployment)
+
+		return true
+	})
+
+	return deployments, nil
 }
 
 // Create a new Deployment.

@@ -23,6 +23,9 @@ func (repo *JobRepository) FindIncomplete(ctx context.Context, excl ...provision
 	var jobs []*provision.Job
 
 	query := repo.db.Model(ctx, &jobs).
+		Preload("ProviderSettings").
+		Preload("Server").
+		Preload("Deployment").
 		Where("finished_at IS NULL")
 
 	if len(excl) > 0 {
@@ -58,6 +61,9 @@ func (repo *JobRepository) Find(ctx context.Context, id provision.JobID) (*provi
 func (repo *JobRepository) List(ctx context.Context, accountID account.ID) ([]*provision.Job, error) {
 	var jobs []*provision.Job
 	err := repo.db.Model(ctx, &jobs).
+		Preload("ProviderSettings").
+		Preload("Server").
+		Preload("Deployment").
 		Where("account_id = ?", accountID).
 		Find(&jobs).Error
 	if err != nil {

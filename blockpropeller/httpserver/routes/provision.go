@@ -8,6 +8,7 @@ import (
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/provision"
 	"github.com/blang/semver"
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -98,6 +99,9 @@ func (p *Provision) CreateJob(c echo.Context) error {
 	}
 
 	settings, err := p.settingsRepo.Find(context.Background(), req.ProviderSettingsID)
+	if errors.Cause(err) == gorm.ErrRecordNotFound {
+		return echo.ErrBadRequest.SetInternal(err)
+	}
 	if err != nil {
 		return errors.Wrap(err, "find provider settings")
 	}

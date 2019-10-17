@@ -30,6 +30,21 @@ func (repo *DeploymentRepository) Find(ctx context.Context, id infrastructure.De
 	return &deployment, nil
 }
 
+// FindByServer returns deployments on a given Server.
+func (repo *DeploymentRepository) FindByServer(ctx context.Context, id infrastructure.ServerID) ([]*infrastructure.Deployment, error) {
+	var deployments []*infrastructure.Deployment
+
+	err := repo.db.Model(ctx, &deployments).
+		Where("server_id = ?", id).
+		Find(&deployments).
+		Error
+	if err != nil {
+		return nil, errors.Wrap(err, "find deployments by server")
+	}
+
+	return deployments, nil
+}
+
 // Create a new Deployment.
 func (repo *DeploymentRepository) Create(ctx context.Context, deployment *infrastructure.Deployment) error {
 	err := repo.prepareDeployment(deployment)
