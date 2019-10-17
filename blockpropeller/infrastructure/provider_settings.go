@@ -79,6 +79,9 @@ type ProviderSettingsRepository interface {
 
 	// Update an existing ProviderSettings.
 	Update(ctx context.Context, providerSettings *ProviderSettings) error
+
+	// Delete an existing ProviderSettings.
+	Delete(ctx context.Context, providerSettings *ProviderSettings) error
 }
 
 // InMemoryProviderSettingsRepository holds the provider settings inside an in-memory map.
@@ -133,6 +136,13 @@ func (repo *InMemoryProviderSettingsRepository) Create(ctx context.Context, prov
 // Update an existing ProviderSettings.
 func (repo *InMemoryProviderSettingsRepository) Update(ctx context.Context, providerSettings *ProviderSettings) error {
 	repo.providerSettings.Store(providerSettings.ID, providerSettings)
+
+	return nil
+}
+
+// Delete an existing ProviderSettings.
+func (repo *InMemoryProviderSettingsRepository) Delete(ctx context.Context, providerSettings *ProviderSettings) error {
+	repo.providerSettings.Delete(providerSettings.ID)
 
 	return nil
 }

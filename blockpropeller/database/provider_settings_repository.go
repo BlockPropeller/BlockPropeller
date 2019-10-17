@@ -62,3 +62,17 @@ func (repo *ProviderSettingsRepository) Update(ctx context.Context, providerSett
 
 	return nil
 }
+
+// Delete an existing ProviderSettings.
+func (repo *ProviderSettingsRepository) Delete(ctx context.Context, providerSettings *infrastructure.ProviderSettings) error {
+	if providerSettings.ID.String() == infrastructure.NilProviderSettingsID.String() {
+		return errors.New("provider settings missing ID")
+	}
+
+	err := repo.db.Model(ctx, providerSettings).Delete(providerSettings).Error
+	if err != nil {
+		return errors.Wrap(err, "delete provider settings")
+	}
+
+	return nil
+}

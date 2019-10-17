@@ -130,3 +130,18 @@ func (ps *ProviderSettings) Create(c echo.Context) error {
 
 	return c.JSON(201, &CreateProviderSettingsResponse{ProviderSettings: settings})
 }
+
+// Delete ProviderSettings.
+func (ps *ProviderSettings) Delete(c echo.Context) error {
+	settings := request.ProviderSettingsFromContext(c)
+	if settings == nil {
+		return echo.ErrNotFound.SetInternal(errors.New("settings not found in context"))
+	}
+
+	err := ps.settingsRepo.Delete(context.Background(), settings)
+	if err != nil {
+		return errors.Wrap(err, "delete provider settings")
+	}
+
+	return c.NoContent(204)
+}
