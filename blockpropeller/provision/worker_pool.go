@@ -27,7 +27,7 @@ func (cfg *WorkerPoolConfig) Validate() error {
 type WorkerPool struct {
 	workerCount int
 
-	jobCh      chan JobID
+	jobCh      chan *Job
 	activeJobs sync.Map
 
 	jobRepo     JobRepository
@@ -39,7 +39,7 @@ func NewWorkerPool(cfg *WorkerPoolConfig, jobRepo JobRepository, provisioner *Pr
 	return &WorkerPool{
 		workerCount: cfg.WorkerCount,
 
-		jobCh: make(chan JobID),
+		jobCh: make(chan *Job),
 
 		jobRepo:     jobRepo,
 		provisioner: provisioner,
@@ -74,7 +74,7 @@ func (wp *WorkerPool) producerLoop(ctx context.Context) {
 				"job_id": job.ID,
 			})
 			wp.addActiveJob(job.ID)
-			wp.jobCh <- job.ID
+			wp.jobCh <- job
 		}
 	}
 }
@@ -94,21 +94,21 @@ func (wp *WorkerPool) startWorker(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case jobID := <-wp.jobCh:
+		case job := <-wp.jobCh:
 			log.Info("starting job", log.Fields{
-				"job_id": jobID,
+				"job_id": job,
 			})
-			err := wp.provisioner.Provision(ctx, jobID)
+			err := wp.provisioner.Provision(ctx, job)
 			if err != nil {
 				// Provisioning process finished with an error.
 				log.ErrorErr(err, "run provision job", log.Fields{
-					"job_id": jobID,
+					"job_id": job.ID,
 				})
 			}
 
-			wp.removeActiveJob(jobID)
+			wp.removeActiveJob(job.ID)
 			log.Info("finished job", log.Fields{
-				"job_id": jobID,
+				"job_id": job.ID,
 			})
 		}
 	}

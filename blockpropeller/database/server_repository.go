@@ -21,7 +21,11 @@ func NewServerRepository(db *DB) *ServerRepository {
 // Find a Server given a ServerID.
 func (repo *ServerRepository) Find(ctx context.Context, id infrastructure.ServerID) (*infrastructure.Server, error) {
 	var server infrastructure.Server
-	err := repo.db.Model(ctx, &server).Where("id = ?", id).First(&server).Error
+	err := repo.db.Model(ctx, &server).
+		Preload("Deployments").
+		Where("id = ?", id).
+		First(&server).
+		Error
 	if err != nil {
 		return nil, errors.Wrap(err, "find server by ID")
 	}
@@ -33,6 +37,7 @@ func (repo *ServerRepository) Find(ctx context.Context, id infrastructure.Server
 func (repo *ServerRepository) List(ctx context.Context, accountID account.ID) ([]*infrastructure.Server, error) {
 	var servers []*infrastructure.Server
 	err := repo.db.Model(ctx, &servers).
+		Preload("Deployments").
 		Where("account_id = ?", accountID).
 		Find(&servers).Error
 	if err != nil {

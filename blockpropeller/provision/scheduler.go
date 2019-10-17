@@ -61,23 +61,3 @@ func (js *JobScheduler) Schedule(ctx context.Context, job *Job) error {
 
 	return nil
 }
-
-// FindScheduled fetches a job to be provisioned.
-func (js *JobScheduler) FindScheduled(ctx context.Context, jobID JobID) (*Job, error) {
-	job, err := js.jobRepo.Find(ctx, jobID)
-	if err != nil {
-		return nil, errors.Wrap(err, "find job")
-	}
-
-	job.Server, err = js.serverRepo.Find(ctx, job.ServerID)
-	if err != nil {
-		return nil, errors.Wrap(err, "find job server")
-	}
-
-	job.Deployment, err = js.deploymentRepo.Find(ctx, job.DeploymentID)
-	if err != nil {
-		return nil, errors.Wrap(err, "find job deployment")
-	}
-
-	return job, nil
-}

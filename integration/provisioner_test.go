@@ -45,7 +45,7 @@ func TestProvisioningJob(t *testing.T) {
 	err = app.JobScheduler.Schedule(context.TODO(), job)
 	test.CheckErr(t, "schedule job", err)
 
-	err = app.Provisioner.Provision(context.TODO(), job.ID)
+	err = app.Provisioner.Provision(context.TODO(), job)
 	defer func() {
 		if job.Server == nil || job.Server.WorkspaceSnapshot == nil {
 			return

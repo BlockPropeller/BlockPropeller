@@ -110,7 +110,7 @@ func runCmd(app *blockpropeller.App) cli.Command {
 				return
 			}
 
-			err = app.Provisioner.Provision(context.Background(), job.ID)
+			err = app.Provisioner.Provision(context.Background(), job)
 			if err != nil {
 				log.ErrorErr(err, "Failed running server state machine")
 				return
