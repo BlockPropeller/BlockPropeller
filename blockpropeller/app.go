@@ -1,10 +1,13 @@
 package blockpropeller
 
 import (
+	"context"
+
 	"blockpropeller.dev/blockpropeller/account"
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/lib/log"
+	"blockpropeller.dev/lib/server"
 )
 
 // App is a container that holds all necessary dependencies
@@ -52,4 +55,24 @@ func NewApp(
 		Provisioner:                provisioner,
 		Logger:                     logger,
 	}
+}
+
+// AppServer is a wrapper around an App that also serves traffic and processes provisioning jobs through a worker pool.
+type AppServer struct {
+	srv        *server.Server
+	workerPool *provision.WorkerPool
+}
+
+// NewAppServer returns a new AppServer instance.
+func NewAppServer(srv *server.Server, workerPool *provision.WorkerPool, logger log.Logger) *AppServer {
+	log.SetGlobal(logger)
+
+	return &AppServer{srv: srv, workerPool: workerPool}
+}
+
+// Start runs the worker pool in the background and a HTTP server in the foreground.
+func (app *AppServer) Start(ctx context.Context) error {
+	go app.workerPool.Start(ctx)
+
+	return app.srv.Start()
 }

@@ -3,7 +3,7 @@ package auth
 import (
 	"blockpropeller.dev/blockpropeller"
 	"blockpropeller.dev/blockpropeller/account"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"blockpropeller.dev/lib/log"
 	"github.com/urfave/cli"
 )

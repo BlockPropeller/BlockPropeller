@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"blockpropeller.dev/blockpropeller"
@@ -15,9 +16,9 @@ func main() {
 	}
 	defer closeFn()
 
-	err = appSrv.Start()
+	err = appSrv.Start(context.Background())
 	if err != nil {
-		log.ErrorErr(err, "Failed running HTTP server")
+		log.ErrorErr(err, "Failed running app server")
 		os.Exit(1)
 	}
 }

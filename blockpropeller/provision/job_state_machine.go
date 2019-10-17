@@ -6,6 +6,7 @@ import (
 
 	"blockpropeller.dev/blockpropeller/statemachine"
 	"blockpropeller.dev/blockpropeller/statemachine/middleware"
+	"blockpropeller.dev/lib/log"
 	"github.com/pkg/errors"
 )
 
@@ -37,15 +38,62 @@ type JobStateMachine struct {
 func ConfigureJobStateMachine(
 	tfStep *StepProvisionServer,
 	ansibleStep *StepProvisionDeployment,
+	failureMiddleware *FailureMiddleware,
 	txMiddleware *middleware.Transactional,
 ) *JobStateMachine {
 	return &JobStateMachine{
 		StateMachine: statemachine.Builder(ValidStates).
+			Middleware(failureMiddleware).
 			Middleware(txMiddleware).
 			Step(StateCreated, tfStep).
 			Step(StateServerCreated, ansibleStep).
 			Build(),
 	}
+}
+
+// FailureMiddleware transitions a Job into failed state if an error is returned
+// from a regular step.
+type FailureMiddleware struct {
+	jobRepo JobRepository
+}
+
+// NewFailureMiddleware returns a new FailureMiddleware instance.
+func NewFailureMiddleware(jobRepo JobRepository) *FailureMiddleware {
+	return &FailureMiddleware{jobRepo: jobRepo}
+}
+
+// Wrap satisfies the Middleware interface.
+func (f *FailureMiddleware) Wrap(step statemachine.Step) statemachine.Step {
+	return statemachine.StepFn(func(ctx context.Context, res statemachine.StatefulResource) error {
+		err := step.Step(ctx, res)
+		if err == nil {
+			// Resume execution on no error.
+			return nil
+		}
+
+		// Mark the Job as failed.
+		job, ok := res.(*Job)
+		if !ok {
+			panic("expected Job instance in FailureMiddleware")
+		}
+
+		log.ErrorErr(err, "failed running job state machine", log.Fields{
+			"job_id":    job.ID,
+			"last_step": job.GetState(),
+		})
+
+		job.SetState(StateFailed)
+
+		now := time.Now()
+		job.FinishedAt = &now
+
+		err = f.jobRepo.Update(ctx, job)
+		if err != nil {
+			return errors.Wrap(err, "update job to failed state")
+		}
+
+		return nil
+	})
 }
 
 // StepProvisionServer creates a plan for creating new infrastructure,

@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"blockpropeller.dev/blockpropeller"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/admin"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/auth"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/admin"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/auth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"blockpropeller.dev/lib/log"
 	"github.com/urfave/cli"
 )
@@ -15,8 +15,8 @@ import (
 // AppCmd is the top level command wrapping all CLI capabilities of BlockPropeller.
 func AppCmd(app *blockpropeller.App) *cli.App {
 	cmd := cli.NewApp()
-	cmd.Name = "chainctl"
-	cmd.Usage = "ChainCTL is a command line utility created to ease the development of BlockPropeller."
+	cmd.Name = "blockctl"
+	cmd.Usage = "BlockCTL is a command line utility created to ease the development of BlockPropeller."
 	cmd.Before = func(*cli.Context) error {
 		localauth.Authenticate(app)
 		return nil

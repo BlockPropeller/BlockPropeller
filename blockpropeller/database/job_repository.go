@@ -18,6 +18,25 @@ func NewJobRepository(db *DB) *JobRepository {
 	return &JobRepository{db: db}
 }
 
+// FindIncomplete Jobs with the exclusion of provided JobIDs.
+func (repo *JobRepository) FindIncomplete(ctx context.Context, excl ...provision.JobID) ([]*provision.Job, error) {
+	var jobs []*provision.Job
+
+	query := repo.db.Model(ctx, &jobs).
+		Where("finished_at IS NULL")
+
+	if len(excl) > 0 {
+		query = query.Where("id NOT IN (?)", excl)
+	}
+
+	err := query.Find(&jobs).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "find jobs")
+	}
+
+	return jobs, nil
+}
+
 // Find a Job given a JobID.
 func (repo *JobRepository) Find(ctx context.Context, id provision.JobID) (*provision.Job, error) {
 	var job provision.Job

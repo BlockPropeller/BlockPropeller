@@ -4,6 +4,7 @@ import (
 	"blockpropeller.dev/blockpropeller/account"
 	"blockpropeller.dev/blockpropeller/ansible"
 	"blockpropeller.dev/blockpropeller/database"
+	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/blockpropeller/terraform"
 	"blockpropeller.dev/lib/log"
 	"blockpropeller.dev/lib/server"
@@ -12,8 +13,9 @@ import (
 
 // Config is the root config structure declaring all possible configuration parameters.
 type Config struct {
-	Log    *log.Config    `yaml:"log"`
-	Server *server.Config `yaml:"server"`
+	Log        *log.Config                 `yaml:"log"`
+	Server     *server.Config              `yaml:"server"`
+	WorkerPool *provision.WorkerPoolConfig `yaml:"worker_pool"`
 
 	Database *database.Config   `yaml:"database"`
 	JWT      *account.JWTConfig `yaml:"jwt"`

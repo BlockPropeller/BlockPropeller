@@ -5,7 +5,7 @@ import (
 
 	"blockpropeller.dev/blockpropeller"
 	"blockpropeller.dev/blockpropeller/binance"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/lib/log"

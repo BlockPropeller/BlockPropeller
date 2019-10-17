@@ -20,7 +20,8 @@ var AppSet = wire.NewSet(
 	middleware.Set,
 
 	ProvideConfig,
-	wire.FieldsOf(new(*Config), "Log", "Server", "Database", "JWT", "Terraform", "Ansible"),
+	wire.FieldsOf(new(*Config),
+		"Log", "Server", "WorkerPool", "Database", "JWT", "Terraform", "Ansible"),
 	NewApp,
 )
 

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"blockpropeller.dev/lib/log"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

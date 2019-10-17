@@ -11,10 +11,13 @@ var Set = wire.NewSet(
 	NewDeploymentProvisioner,
 	NewServerDestroyer,
 
+	NewFailureMiddleware,
 	NewStepProvisionServer,
 	NewStepProvisionDeployment,
 	ConfigureJobStateMachine,
 
 	NewJobScheduler,
 	NewProvisioner,
+
+	NewWorkerPool,
 )

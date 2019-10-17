@@ -17,7 +17,6 @@ import (
 )
 
 func TestProvisioningJob(t *testing.T) {
-	t.SkipNow()
 	test.Integration(t)
 
 	app := blockpropeller.SetupTestApp(t)

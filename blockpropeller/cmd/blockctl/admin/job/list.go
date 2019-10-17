@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"blockpropeller.dev/blockpropeller"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"blockpropeller.dev/lib/log"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"

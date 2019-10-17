@@ -9,7 +9,6 @@ import (
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/lib/log"
-	"blockpropeller.dev/lib/server"
 	"github.com/google/wire"
 )
 
@@ -47,10 +46,11 @@ func SetupDatabaseApp() (*App, func(), error) {
 }
 
 // SetupInMemoryServer constructs a database backed variant of the BlockPropeller Server.
-func SetupDatabaseServer() (*server.Server, func(), error) {
+func SetupDatabaseServer() (*AppServer, func(), error) {
 	panic(wire.Build(
 		dbAppSet,
 
 		httpserver.Set,
+		NewAppServer,
 	))
 }

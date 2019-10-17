@@ -41,7 +41,6 @@ func (p *Provisioner) Provision(ctx context.Context, jobID JobID) error {
 		return errors.Wrap(err, "find job to provision")
 	}
 
-	//@TODO: Create resource creation request for machines that need to be created and services that need to be running on top.
 	return p.StateMachine.StepToCompletion(ctx, job)
 }
 

@@ -2,10 +2,10 @@ package admin
 
 import (
 	"blockpropeller.dev/blockpropeller"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/admin/account"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/admin/job"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/admin/server"
-	"blockpropeller.dev/blockpropeller/cmd/chainctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/admin/account"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/admin/job"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/admin/server"
+	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

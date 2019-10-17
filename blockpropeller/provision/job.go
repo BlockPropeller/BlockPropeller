@@ -142,6 +142,9 @@ func (b *JobBuilder) Build() (*Job, error) {
 
 // JobRepository defines an interface for storing and retrieving provisioning jobs.
 type JobRepository interface {
+	// FindIncomplete Jobs with the exclusion of provided JobIDs.
+	FindIncomplete(ctx context.Context, excl ...JobID) ([]*Job, error)
+
 	// Find a Job given a JobID.
 	Find(ctx context.Context, id JobID) (*Job, error)
 
@@ -165,6 +168,35 @@ type InMemoryJobRepository struct {
 // NewInMemoryJobRepository returns a new InMemoryJobRepository instance.
 func NewInMemoryJobRepository() *InMemoryJobRepository {
 	return &InMemoryJobRepository{}
+}
+
+// FindIncomplete Jobs with the exclusion of provided JobIDs.
+func (repo *InMemoryJobRepository) FindIncomplete(ctx context.Context, excl ...JobID) ([]*Job, error) {
+	var jobs []*Job
+
+	isExcluded := func(job *Job) bool {
+		for _, jobID := range excl {
+			if job.ID == jobID {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	repo.jobs.Range(func(key, v interface{}) bool {
+		job := v.(*Job)
+
+		if isExcluded(job) {
+			return true
+		}
+
+		jobs = append(jobs, job)
+
+		return true
+	})
+
+	return jobs, nil
 }
 
 // Find a Job given a JobID.

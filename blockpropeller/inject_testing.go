@@ -11,7 +11,6 @@ import (
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/lib/log"
-	"blockpropeller.dev/lib/server"
 	"github.com/google/wire"
 )
 
@@ -49,10 +48,11 @@ func SetupTestApp(t *testing.T) *App {
 }
 
 // SetupTestServer constructs a testing variant of the BlockPropeller Server.
-func SetupTestServer(t *testing.T) (*server.Server, func(), error) {
+func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 	panic(wire.Build(
 		testAppSet,
 
 		httpserver.Set,
+		NewAppServer,
 	))
 }
