@@ -9,4 +9,5 @@ var Set = wire.NewSet(
 	NewAccountRoutes,
 	NewProviderSettingsRoutes,
 	NewProvisionRoutes,
+	NewServerRoutes,
 )

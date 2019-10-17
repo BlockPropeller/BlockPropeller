@@ -87,12 +87,17 @@ func SetupDatabaseServer() (*AppServer, func(), error) {
 	deploymentRepository := database.NewDeploymentRepository(db)
 	jobScheduler := provision.NewJobScheduler(db, jobRepository, serverRepository, deploymentRepository)
 	routesProvision := routes.NewProvisionRoutes(jobScheduler, jobRepository, providerSettingsRepository)
+	terraformConfig := config.Terraform
+	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
+	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, db, serverRepository, deploymentRepository)
+	routesServer := routes.NewServerRoutes(serverDestroyer, serverRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
 		ProviderSettingsRoutes:  providerSettings,
 		ProvisionRoutes:         routesProvision,
+		ServerRoutes:            routesServer,
 	}
 	consoleLogger := log.NewConsoleLogger(logConfig)
 	serverServer, err := server.ProvideServer(serverConfig, router, consoleLogger)
@@ -101,8 +106,6 @@ func SetupDatabaseServer() (*AppServer, func(), error) {
 		return nil, nil, err
 	}
 	workerPoolConfig := config.WorkerPool
-	terraformConfig := config.Terraform
-	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	serverProvisioner := provision.NewServerProvisioner(terraformTerraform, serverRepository)
 	stepProvisionServer := provision.NewStepProvisionServer(serverProvisioner, jobRepository)
 	ansibleConfig := config.Ansible
@@ -112,7 +115,6 @@ func SetupDatabaseServer() (*AppServer, func(), error) {
 	failureMiddleware := provision.NewFailureMiddleware(jobRepository)
 	transactional := middleware.NewTransactional(db)
 	jobStateMachine := provision.ConfigureJobStateMachine(stepProvisionServer, stepProvisionDeployment, failureMiddleware, transactional)
-	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, db, serverRepository, deploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	workerPool := provision.NewWorkerPool(workerPoolConfig, jobRepository, provisioner)
 	appServer := NewAppServer(serverServer, workerPool, consoleLogger)
@@ -174,12 +176,17 @@ func SetupInMemoryServer() (*AppServer, func(), error) {
 	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	routesProvision := routes.NewProvisionRoutes(jobScheduler, inMemoryJobRepository, inMemoryProviderSettingsRepository)
+	terraformConfig := config.Terraform
+	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
+	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
+	routesServer := routes.NewServerRoutes(serverDestroyer, inMemoryServerRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
 		ProviderSettingsRoutes:  providerSettings,
 		ProvisionRoutes:         routesProvision,
+		ServerRoutes:            routesServer,
 	}
 	logConfig := config.Log
 	consoleLogger := log.NewConsoleLogger(logConfig)
@@ -188,8 +195,6 @@ func SetupInMemoryServer() (*AppServer, func(), error) {
 		return nil, nil, err
 	}
 	workerPoolConfig := config.WorkerPool
-	terraformConfig := config.Terraform
-	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	serverProvisioner := provision.NewServerProvisioner(terraformTerraform, inMemoryServerRepository)
 	stepProvisionServer := provision.NewStepProvisionServer(serverProvisioner, inMemoryJobRepository)
 	ansibleConfig := config.Ansible
@@ -199,7 +204,6 @@ func SetupInMemoryServer() (*AppServer, func(), error) {
 	failureMiddleware := provision.NewFailureMiddleware(inMemoryJobRepository)
 	transactional := middleware.NewTransactional(inMemoryTxContext)
 	jobStateMachine := provision.ConfigureJobStateMachine(stepProvisionServer, stepProvisionDeployment, failureMiddleware, transactional)
-	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	workerPool := provision.NewWorkerPool(workerPoolConfig, inMemoryJobRepository, provisioner)
 	appServer := NewAppServer(serverServer, workerPool, consoleLogger)
@@ -259,12 +263,17 @@ func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 	inMemoryDeploymentRepository := infrastructure.NewInMemoryDeploymentRepository()
 	jobScheduler := provision.NewJobScheduler(inMemoryTxContext, inMemoryJobRepository, inMemoryServerRepository, inMemoryDeploymentRepository)
 	routesProvision := routes.NewProvisionRoutes(jobScheduler, inMemoryJobRepository, inMemoryProviderSettingsRepository)
+	terraformConfig := config.Terraform
+	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
+	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
+	routesServer := routes.NewServerRoutes(serverDestroyer, inMemoryServerRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
 		AuthRoutes:              authentication,
 		AccountRoutes:           routesAccount,
 		ProviderSettingsRoutes:  providerSettings,
 		ProvisionRoutes:         routesProvision,
+		ServerRoutes:            routesServer,
 	}
 	testingLogger := log.NewTestingLogger(t)
 	serverServer, err := server.ProvideServer(serverConfig, router, testingLogger)
@@ -272,8 +281,6 @@ func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 		return nil, nil, err
 	}
 	workerPoolConfig := config.WorkerPool
-	terraformConfig := config.Terraform
-	terraformTerraform := terraform.ConfigureTerraform(terraformConfig)
 	serverProvisioner := provision.NewServerProvisioner(terraformTerraform, inMemoryServerRepository)
 	stepProvisionServer := provision.NewStepProvisionServer(serverProvisioner, inMemoryJobRepository)
 	ansibleConfig := config.Ansible
@@ -283,7 +290,6 @@ func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 	failureMiddleware := provision.NewFailureMiddleware(inMemoryJobRepository)
 	transactional := middleware.NewTransactional(inMemoryTxContext)
 	jobStateMachine := provision.ConfigureJobStateMachine(stepProvisionServer, stepProvisionDeployment, failureMiddleware, transactional)
-	serverDestroyer := provision.NewServerDestroyer(terraformTerraform, inMemoryTxContext, inMemoryServerRepository, inMemoryDeploymentRepository)
 	provisioner := provision.NewProvisioner(jobStateMachine, jobScheduler, terraformTerraform, serverDestroyer)
 	workerPool := provision.NewWorkerPool(workerPoolConfig, inMemoryJobRepository, provisioner)
 	appServer := NewAppServer(serverServer, workerPool, testingLogger)

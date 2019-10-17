@@ -14,6 +14,7 @@ type Router struct {
 	AccountRoutes          *routes.Account
 	ProviderSettingsRoutes *routes.ProviderSettings
 	ProvisionRoutes        *routes.Provision
+	ServerRoutes           *routes.Server
 }
 
 // RegisterRoutes satisfies the server.Router interface.
@@ -36,6 +37,12 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 	protectedAPI.POST("/provision/job", r.ProvisionRoutes.CreateJob)
 	protectedAPI.GET("/provision/job/:job_id", r.ProvisionRoutes.GetJob,
 		r.ProvisionRoutes.LoadJob)
+
+	protectedAPI.GET("/server", r.ServerRoutes.List)
+	protectedAPI.GET("/server/:server_id", r.ServerRoutes.Get,
+		r.ServerRoutes.LoadServer)
+	protectedAPI.DELETE("/server/:server_id", r.ServerRoutes.Delete,
+		r.ServerRoutes.LoadServer)
 
 	return nil
 }

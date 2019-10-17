@@ -66,3 +66,18 @@ func JobFromContext(c echo.Context) *provision.Job {
 
 	return job.(*provision.Job)
 }
+
+// WithServer adds an Server resource to echo.Context.
+func WithServer(c echo.Context, srv *infrastructure.Server) {
+	c.Set("_server", srv)
+}
+
+// ServerFromContext returns an Server from echo.Context.
+func ServerFromContext(c echo.Context) *infrastructure.Server {
+	srv := c.Get("_server")
+	if srv == nil {
+		return nil
+	}
+
+	return srv.(*infrastructure.Server)
+}
