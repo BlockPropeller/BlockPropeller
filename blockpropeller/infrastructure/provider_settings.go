@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"blockpropeller.dev/blockpropeller/account"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
@@ -46,8 +47,9 @@ type ProviderSettings struct {
 
 	Credentials string `json:"-" gorm:"type:text not null"`
 
-	CreatedAt time.Time `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	CreatedAt time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	DeletedAt *time.Time `json:"-" gorm:"type:datetime"`
 }
 
 // NewProviderSettings returns a new ProviderSettings instance.
@@ -64,6 +66,19 @@ func NewProviderSettings(accountID account.ID, label string, providerType Provid
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+}
+
+// BeforeDelete GORM hook to null out the credentials field.
+func (ps *ProviderSettings) BeforeDelete(tx *gorm.DB) error {
+	err := tx.Model(&ProviderSettings{}).
+		Where("id = ?", ps.ID).
+		Update("credentials", "[DELETED]").
+		Error
+	if err != nil {
+		return errors.Wrap(err, "remove credentials")
+	}
+
+	return nil
 }
 
 // ProviderSettingsRepository defines an interface for storing and retrieving provisioning provider settings.
