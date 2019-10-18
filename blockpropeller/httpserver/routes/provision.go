@@ -118,8 +118,14 @@ func (p *Provision) CreateJob(c echo.Context) error {
 
 	deployment := binance.NewNodeDeployment(req.NodeNetwork, req.NodeType, nodeVersion)
 
+	size := infrastructure.ServerSizeTest
+	if req.NodeType == binance.TypeFullNode {
+		size = infrastructure.ServerSizeProd
+	}
+
 	srv, err := infrastructure.NewServerBuilder(acc.ID).
 		Provider(settings.Type).
+		Size(size).
 		Build()
 	if err != nil {
 		return errors.Wrap(err, "build server")

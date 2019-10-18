@@ -6,8 +6,7 @@ import (
 
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/terraform"
-	"blockpropeller.dev/blockpropeller/terraform/resource"
-	"blockpropeller.dev/blockpropeller/terraform/resource/digitalocean"
+	"blockpropeller.dev/blockpropeller/terraform/cloudprovider"
 	"blockpropeller.dev/lib/log"
 	"github.com/pkg/errors"
 )
@@ -118,34 +117,25 @@ func (sp *ServerProvisioner) setupWorkspace(provider *infrastructure.ProviderSet
 		"dir": workspace.WorkDir(),
 	})
 
-	workspace.Add(digitalocean.NewProvider(provider.Credentials))
+	cloudProvider, err := cloudprovider.GetProvider(provider.Type)
+	if err != nil {
+		return nil, errors.Wrap(err, "get cloud provider")
+	}
+
+	err = cloudProvider.Register(workspace, provider)
+	if err != nil {
+		return nil, errors.Wrap(err, "register cloud provider in workspace")
+	}
 
 	log.Debug("using provider", log.Fields{
 		"type":        provider.Type,
 		"credentials": provider.Credentials,
 	})
 
-	sshKey := srv.SSHKey
-
-	doSSHKey := digitalocean.NewSSHKey(sshKey.Name, sshKey.EncodedPublicKey())
-	log.Debug("using ssh key", log.Fields{
-		"pub":  sshKey.EncodedPublicKey(),
-		"priv": sshKey.EncodedPrivateKey(),
-	})
-
-	doDroplet := digitalocean.NewDroplet(
-		srv.Name,
-		"ubuntu-18-04-x64",
-		"fra1",
-		"s-1vcpu-1gb",
-		[]*digitalocean.SSHKey{doSSHKey},
-	)
-
-	workspace.AddResource(doSSHKey, doDroplet)
-
-	ipAddressOut := resource.NewOutput("ip-address", resource.ToPropSelector(doDroplet, "ipv4_address"))
-
-	workspace.Add(ipAddressOut)
+	err = cloudProvider.AddServer(workspace, srv)
+	if err != nil {
+		return nil, errors.Wrap(err, "add server to workspace")
+	}
 
 	err = workspace.Flush()
 	if err != nil {

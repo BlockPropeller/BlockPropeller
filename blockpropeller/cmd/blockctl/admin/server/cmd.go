@@ -13,6 +13,7 @@ func Cmd(app *blockpropeller.App) cli.Command {
 		Subcommands: []cli.Command{
 			listCmd(app),
 			deleteCmd(app),
+			dumpKeyCmd(app),
 		},
 	}
 }

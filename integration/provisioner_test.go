@@ -14,6 +14,8 @@ import (
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/lib/test"
 	"github.com/blang/semver"
+
+	_ "blockpropeller.dev/blockpropeller/terraform/cloudprovider/digitalocean"
 )
 
 func TestProvisioningJob(t *testing.T) {

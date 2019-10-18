@@ -49,6 +49,7 @@ type ServerBuilder struct {
 	accountID account.ID
 	name      string
 	provider  ProviderType
+	size      ServerSize
 	sshKey    *SSHKey
 }
 
@@ -73,6 +74,13 @@ func (b *ServerBuilder) Provider(provider ProviderType) *ServerBuilder {
 	return b
 }
 
+// Size configures the size for provisioning the server.
+func (b *ServerBuilder) Size(size ServerSize) *ServerBuilder {
+	b.size = size
+
+	return b
+}
+
 // SSHKey configures the SSHKey used to access the server after provisioning.
 func (b *ServerBuilder) SSHKey(sshKey *SSHKey) *ServerBuilder {
 	b.sshKey = sshKey
@@ -88,6 +96,9 @@ func (b *ServerBuilder) Build() (*Server, error) {
 	if b.provider == "" {
 		return nil, errors.New("missing cloud provider")
 	}
+	if b.size == "" {
+		b.size = ServerSizeTest
+	}
 	if b.sshKey == nil {
 		sshKey, err := GenerateNewSSHKey("BlockPropeller - " + b.name)
 		if err != nil {
@@ -97,7 +108,7 @@ func (b *ServerBuilder) Build() (*Server, error) {
 		b.sshKey = sshKey
 	}
 
-	return NewServer(b.accountID, b.name, b.provider, b.sshKey), nil
+	return NewServer(b.accountID, b.name, b.provider, b.size, b.sshKey), nil
 }
 
 // Server holds all the configuration values for a single provisioning server.
@@ -110,6 +121,7 @@ type Server struct {
 	Name string `json:"name" gorm:"type:varchar(255) not null"`
 
 	Provider ProviderType `json:"provider" gorm:"type:varchar(100) not null"`
+	Size     ServerSize   `json:"size" gorm:"type:varchar(100) not null"`
 
 	SSHKey *SSHKey `json:"ssh_key" gorm:"embedded;embedded_prefix:ssh_key_"`
 
@@ -128,7 +140,7 @@ type Server struct {
 // NewServer allows you to construct a provision server in a single line.
 //
 // If you need a fluent interface for constructing the Server, you can use the ServerBuilder.
-func NewServer(accountID account.ID, name string, provider ProviderType, sshKey *SSHKey) *Server {
+func NewServer(accountID account.ID, name string, provider ProviderType, size ServerSize, sshKey *SSHKey) *Server {
 	return &Server{
 		ID:        NewServerID(),
 		AccountID: accountID,
@@ -137,7 +149,9 @@ func NewServer(accountID account.ID, name string, provider ProviderType, sshKey 
 
 		Name:     name,
 		Provider: provider,
-		SSHKey:   sshKey,
+		Size:     size,
+
+		SSHKey: sshKey,
 
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

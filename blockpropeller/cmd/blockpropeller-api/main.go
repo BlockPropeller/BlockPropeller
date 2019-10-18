@@ -6,6 +6,8 @@ import (
 
 	"blockpropeller.dev/blockpropeller"
 	"blockpropeller.dev/lib/log"
+
+	_ "blockpropeller.dev/blockpropeller/terraform/cloudprovider/digitalocean"
 )
 
 func main() {

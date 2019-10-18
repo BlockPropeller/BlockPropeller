@@ -10,6 +10,8 @@ import (
 	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
 	"blockpropeller.dev/lib/log"
 	"github.com/urfave/cli"
+
+	_ "blockpropeller.dev/blockpropeller/terraform/cloudprovider/digitalocean"
 )
 
 // AppCmd is the top level command wrapping all CLI capabilities of BlockPropeller.
