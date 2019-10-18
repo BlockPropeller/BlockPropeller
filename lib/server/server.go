@@ -8,6 +8,7 @@ import (
 
 	"blockpropeller.dev/lib/log"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/pkg/errors"
 )
 
@@ -24,6 +25,7 @@ func ProvideServer(cfg *Config, router Router, logger log.Logger) (*Server, erro
 	e.HideBanner = true
 	e.Validator = newRequestValidator()
 	e.Logger.SetOutput(ioutil.Discard)
+	e.Use(middleware.CORS())
 
 	e.HTTPErrorHandler = httpErrorHandler
 	e.Use(LoggerMiddleware(logger))
