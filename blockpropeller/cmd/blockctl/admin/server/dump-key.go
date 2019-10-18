@@ -10,6 +10,7 @@ import (
 	"blockpropeller.dev/blockpropeller"
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/lib/log"
+	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli"
 )
 
@@ -35,7 +36,7 @@ func dumpKeyCmd(app *blockpropeller.App) cli.Command {
 
 			privKey := srv.SSHKey.EncodedPrivateKey()
 
-			keyPath := filepath.Join(os.TempDir(), "keys", srv.ID.String()+".pkey")
+			keyPath := filepath.Join(os.TempDir(), "keys", uuid.NewV4().String())
 			err = os.MkdirAll(filepath.Dir(keyPath), 0755)
 			if err != nil {
 				log.ErrorErr(err, "failed creating key dir")

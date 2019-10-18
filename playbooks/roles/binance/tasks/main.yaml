@@ -1,12 +1,36 @@
 ---
-- name: Deploy Binance Chain node.
+- name: Ensure homedir exists
+  file:
+    path: "/mnt/volume/binance/{{binance_node_network}}/{{binance_node_type}}"
+    state: directory
+    mode: '0755'
+
+- name: Deploy Binance Chain lightnode.
   docker_container:
     name: "binance-{{binance_node_type}}-{{binance_node_network}}"
     state: started
-    image: "chainup/binance-{{binance_node_type}}-{{binance_node_network}}:{{binance_node_version}}"
+    image: "blockpropeller/binance-{{binance_node_type}}-{{binance_node_network}}:{{binance_node_version}}"
     command:
       - "--chain-id {{binance_chain_ids[binance_node_network]}}"
       - "--node {{binance_nodes[binance_node_network]}}"
       - "--laddr tcp://0.0.0.0:27147"
     ports:
       - "27147:27147"
+    volumes:
+      - "/mnt/volume/binance/{{binance_node_network}}/{{binance_node_type}}:/root/.binance-lite"
+  when:  binance_node_type == 'lightnode'
+
+- name: Deploy Binance Chain fullnode.
+  docker_container:
+    name: "binance-{{binance_node_type}}-{{binance_node_network}}"
+    state: started
+    image: "blockpropeller/binance-{{binance_node_type}}-{{binance_node_network}}:{{binance_node_version}}"
+    command:
+      - "start"
+    ports:
+      - "27147:27147"
+      - "27146:27146"
+      - "28660:28660"
+    volumes:
+      - "/mnt/volume/binance/{{binance_node_network}}/{{binance_node_type}}/data:/root/.bnbchaind/data"
+  when:  binance_node_type == 'fullnode'
