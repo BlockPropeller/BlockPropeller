@@ -235,7 +235,8 @@ func (b *MachineBuilder) MiddlewareStack(stack MiddlewareStack) *MachineBuilder 
 // Build constructs the final StateMachine from builder configuration.
 func (b *MachineBuilder) Build() *StateMachine {
 	return &StateMachine{
-		steps: b.steps,
+		steps:      b.steps,
+		middleware: b.middleware,
 	}
 }
 

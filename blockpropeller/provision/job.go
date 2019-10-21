@@ -57,6 +57,7 @@ type Job struct {
 	CreatedAt  time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt  time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
 	FinishedAt *time.Time `json:"finished_at,omitempty" gorm:"type:datetime"`
+	Error      *string    `json:"error,omitempty" gorm:"type:text"`
 }
 
 // NewJob returns a new Job instance.

@@ -87,6 +87,9 @@ func (f *FailureMiddleware) Wrap(step statemachine.Step) statemachine.Step {
 		now := time.Now()
 		job.FinishedAt = &now
 
+		msg := err.Error()
+		job.Error = &msg
+
 		err = f.jobRepo.Update(ctx, job)
 		if err != nil {
 			return errors.Wrap(err, "update job to failed state")
