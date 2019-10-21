@@ -13,6 +13,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ListJobsResponse is a response to the list jobs request.
+type ListJobsResponse struct {
+	Jobs []*provision.Job `json:"jobs"`
+}
+
 // GetJobResponse is a response to the get job request.
 type GetJobResponse struct {
 	Job *provision.Job `json:"job"`
@@ -74,6 +79,23 @@ func (p *Provision) LoadJob(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
+}
+
+// ListJobs all Jobs for an Account.
+func (p *Provision) ListJobs(c echo.Context) error {
+	acc := request.AuthFromContext(c)
+	if acc == nil {
+		return echo.ErrForbidden
+	}
+
+	jobs, err := p.jobRepo.List(context.Background(), acc.ID)
+	if err != nil {
+		return errors.Wrap(err, "list jobs")
+	}
+
+	return c.JSON(200, &ListJobsResponse{
+		Jobs: jobs,
+	})
 }
 
 // GetJob returns a requested job.

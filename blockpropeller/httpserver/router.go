@@ -37,9 +37,10 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 	protectedAPI.DELETE("/provider/settings/:settings_id", r.ProviderSettingsRoutes.Delete,
 		r.ProviderSettingsRoutes.LoadProviderSettings)
 
-	protectedAPI.POST("/provision/job", r.ProvisionRoutes.CreateJob)
+	protectedAPI.GET("/provision/job", r.ProvisionRoutes.ListJobs)
 	protectedAPI.GET("/provision/job/:job_id", r.ProvisionRoutes.GetJob,
 		r.ProvisionRoutes.LoadJob)
+	protectedAPI.POST("/provision/job", r.ProvisionRoutes.CreateJob)
 
 	protectedAPI.GET("/server", r.ServerRoutes.List)
 	protectedAPI.GET("/server/:server_id", r.ServerRoutes.Get,
