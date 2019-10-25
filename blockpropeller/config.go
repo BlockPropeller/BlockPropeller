@@ -8,7 +8,6 @@ import (
 	"blockpropeller.dev/blockpropeller/terraform"
 	"blockpropeller.dev/lib/log"
 	"blockpropeller.dev/lib/server"
-	"github.com/pkg/errors"
 )
 
 // Config is the root config structure declaring all possible configuration parameters.
@@ -34,13 +33,4 @@ func (cfg *Config) Validate() error {
 // DigitalOceanConfig specifies all configuration parameters for DigitalOcean provider.
 type DigitalOceanConfig struct {
 	AccessToken string `yaml:"access_token"`
-}
-
-// Validate satisfies the config.Config interface.
-func (cfg *DigitalOceanConfig) Validate() error {
-	if cfg.AccessToken == "" {
-		return errors.New("missing DigitalOcean access token")
-	}
-
-	return nil
 }

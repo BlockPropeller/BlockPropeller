@@ -1,6 +1,8 @@
 package httpserver
 
 import (
+	"net/http"
+
 	"blockpropeller.dev/blockpropeller/httpserver/middleware"
 	"blockpropeller.dev/blockpropeller/httpserver/routes"
 	"github.com/labstack/echo"
@@ -20,6 +22,9 @@ type Router struct {
 
 // RegisterRoutes satisfies the server.Router interface.
 func (r *Router) RegisterRoutes(e *echo.Echo) error {
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, http.StatusText(http.StatusOK))
+	})
 	e.POST("/register", r.AuthRoutes.Register)
 	e.POST("/login", r.AuthRoutes.Login)
 

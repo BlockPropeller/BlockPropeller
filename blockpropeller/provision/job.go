@@ -54,9 +54,9 @@ type Job struct {
 	DeploymentID infrastructure.DeploymentID `json:"-" gorm:"type:varchar(36) references deployments(id)"`
 	Deployment   *infrastructure.Deployment  `json:"deployment"`
 
-	CreatedAt  time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt  time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	FinishedAt *time.Time `json:"finished_at,omitempty" gorm:"type:datetime"`
+	CreatedAt  time.Time  `json:"created_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt  time.Time  `json:"updated_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	FinishedAt *time.Time `json:"finished_at,omitempty" gorm:"type:timestamp"`
 	Error      *string    `json:"error,omitempty" gorm:"type:text"`
 }
 

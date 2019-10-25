@@ -47,9 +47,9 @@ type ProviderSettings struct {
 
 	Credentials string `json:"-" gorm:"type:text not null"`
 
-	CreatedAt time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	DeletedAt *time.Time `json:"-" gorm:"type:datetime"`
+	CreatedAt time.Time  `json:"created_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time  `json:"updated_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	DeletedAt *time.Time `json:"-" gorm:"type:timestamp"`
 }
 
 // NewProviderSettings returns a new ProviderSettings instance.

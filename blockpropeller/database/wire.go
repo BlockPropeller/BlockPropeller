@@ -65,7 +65,7 @@ func provideSqliteDB(cfg *Config) (*DB, error) {
 
 func providePostgresDB(cfg *Config) (*DB, error) {
 	db, err := gorm.Open("postgres",
-		fmt.Sprintf("host=%s port=%d user=%s password=%s database=%s",
+		fmt.Sprintf("host=%s port=%d user=%s password=%s database=%s sslmode=disable",
 			cfg.Host, cfg.Port, cfg.User, cfg.Pass, cfg.Database))
 	if err != nil {
 		return nil, errors.Wrap(err, "open postgres database")

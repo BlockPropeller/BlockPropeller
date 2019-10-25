@@ -45,6 +45,8 @@ func ProvideFileConfigProvider() config.Provider {
 	opts := append([]config.FileProviderOpt{
 		config.WithName("config"),
 		config.WithPath("config"),
+		config.WithPath("/blockpropeller/config"),
+		config.WithPath("/blockpropeller"),
 		config.WithPath("."),
 	})
 

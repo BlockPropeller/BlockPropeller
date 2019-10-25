@@ -131,10 +131,10 @@ type Server struct {
 
 	WorkspaceSnapshot *terraform.WorkspaceSnapshot `json:"-" gorm:"embedded;embedded_prefix:terraform_"`
 
-	CreatedAt   time.Time  `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt   time.Time  `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	CompletedAt *time.Time `json:"completed_at,omitempty" gorm:"type:datetime"`
-	DeletedAt   *time.Time `json:"-" gorm:"type:datetime"`
+	CreatedAt   time.Time  `json:"created_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt   time.Time  `json:"updated_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	CompletedAt *time.Time `json:"completed_at,omitempty" gorm:"type:timestamp"`
+	DeletedAt   *time.Time `json:"-" gorm:"type:timestamp"`
 }
 
 // NewServer allows you to construct a provision server in a single line.

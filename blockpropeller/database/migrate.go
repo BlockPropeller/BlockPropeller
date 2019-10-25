@@ -10,10 +10,10 @@ import (
 func migrate(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&account.Account{},
-		&provision.Job{},
 		&infrastructure.ProviderSettings{},
 		&infrastructure.Server{},
 		&infrastructure.Deployment{},
+		&provision.Job{},
 	).Error
 	if err != nil {
 		return err

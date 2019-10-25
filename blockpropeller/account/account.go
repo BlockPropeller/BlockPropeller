@@ -36,8 +36,8 @@ type Account struct {
 	Email    Email    `json:"email" gorm:"type:varchar(255) not null;unique_index"`
 	Password Password `json:"-" gorm:"type:varchar(255)"`
 
-	CreatedAt time.Time `json:"created_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"type:datetime not null;default:CURRENT_TIMESTAMP"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"type:timestamp not null;default:CURRENT_TIMESTAMP"`
 }
 
 // NewAccount returns a new Account instance.
