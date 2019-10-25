@@ -22,6 +22,7 @@ func TestProvisioningJob(t *testing.T) {
 	test.Integration(t)
 
 	app := blockpropeller.SetupTestApp(t)
+	app.InitGlobal()
 
 	acc := createTestAccount(t, app)
 

@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"encoding/pem"
 
+	"blockpropeller.dev/blockpropeller/encryption"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
@@ -27,7 +28,14 @@ func NewPrivateKey(pk *rsa.PrivateKey) *PrivateKey {
 
 // Value implements the sql.Valuer interface.
 func (pk *PrivateKey) Value() (driver.Value, error) {
-	return x509.MarshalPKCS1PrivateKey(&pk.PrivateKey), nil
+	key := x509.MarshalPKCS1PrivateKey(&pk.PrivateKey)
+
+	encrypted, err := encryption.Encrypt(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "encrypt private key")
+	}
+
+	return encrypted, nil
 }
 
 // Scan implements the sql.Scanner interface.
@@ -42,7 +50,12 @@ func (pk *PrivateKey) Scan(src interface{}) error {
 		return errors.New("invalid private key type")
 	}
 
-	privKey, err := x509.ParsePKCS1PrivateKey(data)
+	decrypted, err := encryption.Decrypt(data)
+	if err != nil {
+		return errors.Wrap(err, "decrypt private key")
+	}
+
+	privKey, err := x509.ParsePKCS1PrivateKey(decrypted)
 	if err != nil {
 		return errors.Wrap(err, "parse private key")
 	}

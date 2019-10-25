@@ -18,6 +18,8 @@ func main() {
 	}
 	defer closeFn()
 
+	appSrv.App.InitGlobal()
+
 	err = appSrv.Start(context.Background())
 	if err != nil {
 		log.ErrorErr(err, "Failed running app server")

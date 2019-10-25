@@ -4,6 +4,7 @@ import (
 	"blockpropeller.dev/blockpropeller/account"
 	"blockpropeller.dev/blockpropeller/ansible"
 	"blockpropeller.dev/blockpropeller/database"
+	"blockpropeller.dev/blockpropeller/encryption"
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/blockpropeller/terraform"
 	"blockpropeller.dev/lib/log"
@@ -16,8 +17,9 @@ type Config struct {
 	Server     *server.Config              `yaml:"server"`
 	WorkerPool *provision.WorkerPoolConfig `yaml:"worker_pool"`
 
-	Database *database.Config   `yaml:"database"`
-	JWT      *account.JWTConfig `yaml:"jwt"`
+	Database   *database.Config   `yaml:"database"`
+	JWT        *account.JWTConfig `yaml:"jwt"`
+	Encryption *encryption.Config `yaml:"encryption"`
 
 	DigitalOcean *DigitalOceanConfig `yaml:"digital_ocean"`
 

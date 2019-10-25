@@ -21,7 +21,7 @@ var AppSet = wire.NewSet(
 
 	ProvideConfig,
 	wire.FieldsOf(new(*Config),
-		"Log", "Server", "WorkerPool", "Database", "JWT", "Terraform", "Ansible"),
+		"Log", "Server", "WorkerPool", "Database", "JWT", "Encryption", "Terraform", "Ansible"),
 	NewApp,
 )
 

@@ -8,6 +8,7 @@ import (
 	"blockpropeller.dev/blockpropeller/cmd/blockctl/admin"
 	"blockpropeller.dev/blockpropeller/cmd/blockctl/auth"
 	"blockpropeller.dev/blockpropeller/cmd/blockctl/util/localauth"
+	"blockpropeller.dev/blockpropeller/encryption"
 	"blockpropeller.dev/lib/log"
 	"github.com/urfave/cli"
 
@@ -38,6 +39,9 @@ func main() {
 		os.Exit(1)
 	}
 	defer closeFn()
+
+	log.SetGlobal(app.Logger)
+	encryption.Init(app.Config.Encryption.Secret)
 
 	cmd := AppCmd(app)
 

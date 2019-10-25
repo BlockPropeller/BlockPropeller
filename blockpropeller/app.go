@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"blockpropeller.dev/blockpropeller/account"
+	"blockpropeller.dev/blockpropeller/encryption"
 	"blockpropeller.dev/blockpropeller/infrastructure"
 	"blockpropeller.dev/blockpropeller/provision"
 	"blockpropeller.dev/lib/log"
@@ -42,8 +43,6 @@ func NewApp(
 	provisioner *provision.Provisioner,
 	logger log.Logger,
 ) *App {
-	log.SetGlobal(logger)
-
 	return &App{
 		Config:                     config,
 		AccountRepository:          accRepo,
@@ -57,17 +56,22 @@ func NewApp(
 	}
 }
 
+// InitGlobal configures the global dependencies of the App.
+func (app *App) InitGlobal() {
+	log.SetGlobal(app.Logger)
+	encryption.Init(app.Config.Encryption.Secret)
+}
+
 // AppServer is a wrapper around an App that also serves traffic and processes provisioning jobs through a worker pool.
 type AppServer struct {
+	App        *App
 	srv        *server.Server
 	workerPool *provision.WorkerPool
 }
 
 // NewAppServer returns a new AppServer instance.
-func NewAppServer(srv *server.Server, workerPool *provision.WorkerPool, logger log.Logger) *AppServer {
-	log.SetGlobal(logger)
-
-	return &AppServer{srv: srv, workerPool: workerPool}
+func NewAppServer(app *App, srv *server.Server, workerPool *provision.WorkerPool) *AppServer {
+	return &AppServer{App: app, srv: srv, workerPool: workerPool}
 }
 
 // Start runs the worker pool in the background and a HTTP server in the foreground.

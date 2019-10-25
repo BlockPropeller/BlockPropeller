@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"blockpropeller.dev/blockpropeller/account"
+	"blockpropeller.dev/blockpropeller/encryption"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -66,6 +67,30 @@ func NewProviderSettings(accountID account.ID, label string, providerType Provid
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+}
+
+// BeforeSave encrypts the sensitive information before inserting them to the database.
+func (ps *ProviderSettings) BeforeSave() error {
+	encrypted, err := encryption.Encrypt([]byte(ps.Credentials))
+	if err != nil {
+		return errors.Wrap(err, "encrypt provider credentials")
+	}
+
+	ps.Credentials = string(encrypted)
+
+	return nil
+}
+
+// AfterFind decrypts sensitive information before they can be used.
+func (ps *ProviderSettings) AfterFind() error {
+	decrypted, err := encryption.Decrypt([]byte(ps.Credentials))
+	if err != nil {
+		return errors.Wrap(err, "decrypt provider credentials")
+	}
+
+	ps.Credentials = string(decrypted)
+
+	return nil
 }
 
 // BeforeDelete GORM hook to null out the credentials field.
