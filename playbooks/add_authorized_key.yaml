@@ -1,0 +1,11 @@
+---
+- name: Add an additional authorized key.
+  hosts: all
+  remote_user: root
+
+  tasks:
+    - name: Add new key to authorized_keys
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ additional_authorized_key }}"

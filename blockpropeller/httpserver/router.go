@@ -53,6 +53,9 @@ func (r *Router) RegisterRoutes(e *echo.Echo) error {
 	protectedAPI.DELETE("/server/:server_id", r.ServerRoutes.Delete,
 		r.ServerRoutes.LoadServer)
 
+	protectedAPI.POST("/server/:server_id/key", r.ServerRoutes.AddAuthorizedKey,
+		r.ServerRoutes.LoadServer)
+
 	protectedAPI.GET("/server/:server_id/deployment", r.DeploymentRoutes.List,
 		r.ServerRoutes.LoadServer)
 

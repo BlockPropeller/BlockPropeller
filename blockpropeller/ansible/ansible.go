@@ -41,9 +41,20 @@ func New(path string, playbooksDir string, keysDir string) *Ansible {
 	}
 }
 
-// RunPlaybook executes the playbook on a specified Server
+// ProvisionServer executes the playbook on a specified Server
 // and applying the provided deployment configuration.
-func (ans *Ansible) RunPlaybook(srv *infrastructure.Server, deployment *infrastructure.Deployment) error {
+func (ans *Ansible) ProvisionServer(srv *infrastructure.Server, deployment *infrastructure.Deployment) error {
+	return ans.runPlaybook(srv, "site.yaml", deployment.Configuration.MarshalMap())
+}
+
+// AddAuthorizedKey registers an additional authorized key so it can connect to the server.
+func (ans *Ansible) AddAuthorizedKey(srv *infrastructure.Server, pubKey string) error {
+	return ans.runPlaybook(srv, "add_authorized_key.yaml", map[string]string{
+		"additional_authorized_key": pubKey,
+	})
+}
+
+func (ans *Ansible) runPlaybook(srv *infrastructure.Server, playbook string, vars map[string]string) error {
 	keyPath, err := ans.setupSSHKey(srv.SSHKey)
 	if err != nil {
 		return errors.Wrap(err, "setup ssh key")
@@ -51,8 +62,8 @@ func (ans *Ansible) RunPlaybook(srv *infrastructure.Server, deployment *infrastr
 	defer ans.cleanupSSHKey(keyPath)
 
 	var extraVars []string
-	for key, value := range deployment.Configuration.MarshalMap() {
-		extraVars = append(extraVars, key+"="+value)
+	for key, value := range vars {
+		extraVars = append(extraVars, key+"='"+value+"'")
 	}
 
 	out, err := ans.exec(
@@ -60,7 +71,7 @@ func (ans *Ansible) RunPlaybook(srv *infrastructure.Server, deployment *infrastr
 		"--inventory", srv.IPAddress.String()+",",
 		"--key-file", keyPath,
 		"--extra-vars", strings.Join(extraVars, " "),
-		"site.yaml",
+		playbook,
 	)
 	log.Debug("run ansible-playbook", log.Fields{
 		"stdout": string(out),

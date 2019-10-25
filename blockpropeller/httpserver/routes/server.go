@@ -20,16 +20,22 @@ type GetServerResponse struct {
 	Server *infrastructure.Server `json:"server"`
 }
 
+// AddAuthorizedKeyRequest is a request for adding a new authorized ssh key to a server.
+type AddAuthorizedKeyRequest struct {
+	PublicKey string `json:"public_key" form:"public_key" validate:"required"`
+}
+
 // Server REST Resource for accessing server information.
 type Server struct {
-	srvDestroyer *provision.ServerDestroyer
+	srvDestroyer    *provision.ServerDestroyer
+	deplProvisioner *provision.DeploymentProvisioner
 
 	srvRepo infrastructure.ServerRepository
 }
 
 // NewServerRoutes returns a new Server routes instance.
-func NewServerRoutes(srvDestroyer *provision.ServerDestroyer, srvRepo infrastructure.ServerRepository) *Server {
-	return &Server{srvDestroyer: srvDestroyer, srvRepo: srvRepo}
+func NewServerRoutes(srvDestroyer *provision.ServerDestroyer, deplProvisioner *provision.DeploymentProvisioner, srvRepo infrastructure.ServerRepository) *Server {
+	return &Server{srvDestroyer: srvDestroyer, deplProvisioner: deplProvisioner, srvRepo: srvRepo}
 }
 
 // LoadServer is a middleware for loading Server into request context
@@ -83,6 +89,26 @@ func (s *Server) Get(c echo.Context) error {
 	}
 
 	return c.JSON(200, &GetServerResponse{Server: srv})
+}
+
+// AddAuthorizedKey to a Server.
+func (s *Server) AddAuthorizedKey(c echo.Context) error {
+	srv := request.ServerFromContext(c)
+	if srv == nil {
+		return echo.ErrNotFound.SetInternal(errors.New("server not found in context"))
+	}
+
+	var req AddAuthorizedKeyRequest
+	if err := request.Parse(c, &req); err != nil {
+		return err
+	}
+
+	err := s.deplProvisioner.AddAuthorizedKey(srv, req.PublicKey)
+	if err != nil {
+		return errors.Wrap(err, "add authorized key")
+	}
+
+	return c.NoContent(201)
 }
 
 // Delete issues a delete request for a specific Server.

@@ -102,7 +102,7 @@ func SetupDatabaseServer() (*AppServer, func(), error) {
 	routesAccount := routes.NewAccountRoutes(accountRepository)
 	providerSettings := routes.NewProviderSettingsRoutes(providerSettingsRepository)
 	routesProvision := routes.NewProvisionRoutes(jobScheduler, jobRepository, providerSettingsRepository)
-	routesServer := routes.NewServerRoutes(serverDestroyer, serverRepository)
+	routesServer := routes.NewServerRoutes(serverDestroyer, deploymentProvisioner, serverRepository)
 	deployment := routes.NewDeploymentRoutes(deploymentRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
@@ -195,7 +195,7 @@ func SetupInMemoryServer() (*AppServer, func(), error) {
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
 	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
 	routesProvision := routes.NewProvisionRoutes(jobScheduler, inMemoryJobRepository, inMemoryProviderSettingsRepository)
-	routesServer := routes.NewServerRoutes(serverDestroyer, inMemoryServerRepository)
+	routesServer := routes.NewServerRoutes(serverDestroyer, deploymentProvisioner, inMemoryServerRepository)
 	deployment := routes.NewDeploymentRoutes(inMemoryDeploymentRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,
@@ -284,7 +284,7 @@ func SetupTestServer(t *testing.T) (*AppServer, func(), error) {
 	routesAccount := routes.NewAccountRoutes(inMemoryRepository)
 	providerSettings := routes.NewProviderSettingsRoutes(inMemoryProviderSettingsRepository)
 	routesProvision := routes.NewProvisionRoutes(jobScheduler, inMemoryJobRepository, inMemoryProviderSettingsRepository)
-	routesServer := routes.NewServerRoutes(serverDestroyer, inMemoryServerRepository)
+	routesServer := routes.NewServerRoutes(serverDestroyer, deploymentProvisioner, inMemoryServerRepository)
 	deployment := routes.NewDeploymentRoutes(inMemoryDeploymentRepository)
 	router := &httpserver.Router{
 		AuthenticatedMiddleware: authenticationMiddleware,

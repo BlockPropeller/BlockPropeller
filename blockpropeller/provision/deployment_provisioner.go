@@ -57,7 +57,7 @@ func (dp *DeploymentProvisioner) Provision(ctx context.Context, srv *infrastruct
 		})
 		time.Sleep(5 * time.Second)
 
-		err = dp.ans.RunPlaybook(srv, deployment)
+		err = dp.ans.ProvisionServer(srv, deployment)
 		if err != nil {
 			log.ErrorErr(err, "failed running playbook on server", log.Fields{
 				"tries": tries,
@@ -79,4 +79,10 @@ func (dp *DeploymentProvisioner) Provision(ctx context.Context, srv *infrastruct
 	}
 
 	return nil
+}
+
+// AddAuthorizedKey registers an additional authorized key so it can connect to the server.
+func (dp *DeploymentProvisioner) AddAuthorizedKey(srv *infrastructure.Server, pubKey string) error {
+	//@TODO: There is no need for this indirection. AddAuthorizedKey should be removed from Ansible and put instead of this proxy call.
+	return dp.ans.AddAuthorizedKey(srv, pubKey)
 }
