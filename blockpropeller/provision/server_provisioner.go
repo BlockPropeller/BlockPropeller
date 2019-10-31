@@ -88,7 +88,7 @@ func (sp *ServerProvisioner) Provision(ctx context.Context, provider *infrastruc
 		"ip": ip.String(),
 	})
 
-	srv.IPAddress = ip
+	srv.IPAddress = ip.String()
 	srv.State = infrastructure.ServerStateOk
 
 	snap, err := workspace.Snapshot()

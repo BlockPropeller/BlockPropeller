@@ -33,7 +33,7 @@ func listCmd(app *blockpropeller.App) cli.Command {
 					srv.Name,
 					srv.State.String(),
 					srv.Provider.String(),
-					srv.IPAddress.String(),
+					srv.IPAddress,
 				})
 			}
 

@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"context"
-	"net"
 	"sync"
 	"time"
 
@@ -125,7 +124,7 @@ type Server struct {
 
 	SSHKey *SSHKey `json:"ssh_key" gorm:"embedded;embedded_prefix:ssh_key_"`
 
-	IPAddress net.IP `json:"ip_address,omitempty" gorm:"type:varchar(255)"`
+	IPAddress string `json:"ip_address,omitempty" gorm:"type:varchar(255)"`
 
 	Deployments []*Deployment `json:"deployments,omitempty"`
 

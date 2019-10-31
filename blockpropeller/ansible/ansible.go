@@ -68,7 +68,7 @@ func (ans *Ansible) runPlaybook(srv *infrastructure.Server, playbook string, var
 
 	out, err := ans.exec(
 		ans.playbooksDir,
-		"--inventory", srv.IPAddress.String()+",",
+		"--inventory", srv.IPAddress+",",
 		"--key-file", keyPath,
 		"--extra-vars", strings.Join(extraVars, " "),
 		playbook,

@@ -48,7 +48,7 @@ func (nodeDeploymentSpec) UnmarshalConfig(raw map[string]string) (infrastructure
 
 // HealthCheck returns a HealthCheck to be used to determine Deployment health.
 func (nodeDeploymentSpec) HealthCheck(srv *infrastructure.Server, deployment *infrastructure.Deployment) (infrastructure.HealthCheck, error) {
-	url := fmt.Sprintf("http://%s:27147/status", srv.IPAddress.String())
+	url := fmt.Sprintf("http://%s:27147/status", srv.IPAddress)
 
 	return infrastructure.NewHTTPHealthCheck("GET", url, 200), nil
 }

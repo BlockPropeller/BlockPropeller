@@ -51,11 +51,11 @@ func (dp *DeploymentProvisioner) Provision(ctx context.Context, srv *infrastruct
 
 	log.Debug("running playbook...")
 
-	for tries := 5; tries > 0; tries-- {
+	for tries := 60; tries > 0; tries-- {
 		log.Debug("waiting for server to become available", log.Fields{
-			"seconds": 5,
+			"seconds": 10,
 		})
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 
 		err = dp.ans.ProvisionServer(srv, deployment)
 		if err != nil {

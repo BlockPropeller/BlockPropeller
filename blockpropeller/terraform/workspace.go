@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"blockpropeller.dev/blockpropeller/encryption"
 	"blockpropeller.dev/blockpropeller/terraform/resource"
 	"github.com/pkg/errors"
 )
@@ -69,17 +70,32 @@ func RestoreWorkspace(snap *WorkspaceSnapshot) (*Workspace, error) {
 		return nil, errors.Wrap(err, "restore workspace work dir")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(snap.WorkspacePath, "main.tf"), []byte(snap.TerraformDefinitions), 0655)
+	definitions, err := encryption.Decrypt([]byte(snap.TerraformDefinitions))
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt terraform definitions")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(snap.WorkspacePath, "main.tf"), definitions, 0655)
 	if err != nil {
 		return nil, errors.Wrap(err, "restore terraform definitions")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(snap.WorkspacePath, "tfplan"), []byte(snap.TerraformPlan), 0655)
+	plan, err := encryption.Decrypt([]byte(snap.TerraformPlan))
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt terraform plan")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(snap.WorkspacePath, "tfplan"), plan, 0655)
 	if err != nil {
 		return nil, errors.Wrap(err, "restore terraform plan")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(snap.WorkspacePath, "terraform.tfstate"), []byte(snap.TerraformState), 0655)
+	state, err := encryption.Decrypt([]byte(snap.TerraformState))
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt terraform state")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(snap.WorkspacePath, "terraform.tfstate"), state, 0655)
 	if err != nil {
 		return nil, errors.Wrap(err, "restore terraform state")
 	}
@@ -170,21 +186,36 @@ func (w *Workspace) Snapshot() (*WorkspaceSnapshot, error) {
 		return nil, errors.Wrap(err, "read terraform definitions")
 	}
 
-	snap.TerraformDefinitions = string(definitions)
+	encryptedDefinitions, err := encryption.Encrypt(definitions)
+	if err != nil {
+		return nil, errors.Wrap(err, "encrypt terraform definitions")
+	}
+
+	snap.TerraformDefinitions = string(encryptedDefinitions)
 
 	plan, err := ioutil.ReadFile(filepath.Join(w.workDir, "tfplan"))
 	if err != nil && !os.IsNotExist(err) {
 		return nil, errors.Wrap(err, "read terraform plan")
 	}
 
-	snap.TerraformPlan = string(plan)
+	encryptedPlan, err := encryption.Encrypt(plan)
+	if err != nil {
+		return nil, errors.Wrap(err, "encrypt terraform plan")
+	}
+
+	snap.TerraformPlan = string(encryptedPlan)
 
 	state, err := ioutil.ReadFile(filepath.Join(w.workDir, "terraform.tfstate"))
 	if err != nil && !os.IsNotExist(err) {
 		return nil, errors.Wrap(err, "read terraform state")
 	}
 
-	snap.TerraformState = string(state)
+	encryptedState, err := encryption.Encrypt(state)
+	if err != nil {
+		return nil, errors.Wrap(err, "encrypt terraform state")
+	}
+
+	snap.TerraformState = string(encryptedState)
 
 	return snap, nil
 }

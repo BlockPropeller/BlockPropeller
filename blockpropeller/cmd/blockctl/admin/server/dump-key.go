@@ -50,7 +50,7 @@ func dumpKeyCmd(app *blockpropeller.App) cli.Command {
 			}
 
 			log.Info("saved private key", log.Fields{
-				"cmd": fmt.Sprintf("ssh root@%s -i %s", srv.IPAddress.String(), keyPath),
+				"cmd": fmt.Sprintf("ssh root@%s -i %s", srv.IPAddress, keyPath),
 			})
 		},
 	}
